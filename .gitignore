@@ -2,3 +2,7 @@
 Manifest.toml
 manuscript/
 papers/
+code/
+data/
+results/
+figs/

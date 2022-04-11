@@ -24,11 +24,24 @@ function runvc_uni!(gene::Gene)
     @info "Fitting univariate, three variance components model"
     V = [gene.grmcis, gene.grmtrans, Matrix{Float64}(I, size(gene.grmcis))]
     @info "Fitting gene"
-    result = permutedims(fit_uni(gene.Yg, gene.X, V))
+    success_gene = Int[]
+    try
+        result = permutedims(fit_uni(gene.Yg, gene.X, V))
+        push!(success_gene, 1)
+    catch e
+        println(e)
+        result = Matrix{Float64}(undef, 0, 25)
+    end
     d = size(gene.Yi, 2)
+    success_isoform = Int[]
     for i in 1:d
         @info "Fitting $i / $d isoform"
-        result = vcat(result, permutedims(fit_uni(gene.Yi[:, i], gene.X, V)))
+        try
+            result = vcat(result, permutedims(fit_uni(gene.Yi[:, i], gene.X, V)))
+            push!(success_isoform, i)
+        catch e
+            println(e)
+        end
     end
     result = DataFrame(result, [
         :var_cis_reml, :var_trans_reml, :var_res_reml, :se_var_cis_reml,
@@ -40,13 +53,20 @@ function runvc_uni!(gene::Gene)
         ])
     result.gene_name .= gene.gene_name
     result.gene_id .= gene.gene_id
-    result.id = vcat(gene.gene_id, gene.expressed_isoforms)
-    result.feature = vcat("gene", fill("isoform", d))
+    if isempty(success_gene)
+        result.id = gene.expressed_isoforms[success_isoform]
+        result.feature = fill("isoform", length(success_isoform))
+        ind = findall(result.p .< 0.05)
+        !isempty(ind) ? gene.heritable_isoforms = success_isoform[ind] : nothing
+    else
+        result.id = vcat(gene.gene_id, gene.expressed_isoforms[success_isoform])
+        result.feature = vcat("gene", fill("isoform", length(success_isoform)))
+        result.p[1] < 0.05 ? gene.gene_heritable = true : nothing
+        ind = findall(result.p[2:end] .< 0.05)
+        !isempty(ind) ? gene.heritable_isoforms = success_isoform[ind] : nothing
+    end
     result.ncisnps .= gene.ncisnps
     select!(result, :gene_name, :gene_id, :id, :feature, :)
-    result.p[1] < 0.05 ? gene.gene_heritable = true : nothing
-    ind = findall(result.p[2:end] .< 0.05)
-    !isempty(ind) ? gene.heritable_isoforms = ind : nothing
     CSV.write(joinpath(@__DIR__, "../results/univariate/$(gene.gene_id).tsv"), result, delim = "\t")
 end
 
@@ -134,10 +154,10 @@ function runvc_bi(gene::Gene)
 end
 
 function runvc_mul(gene::Gene)
-    d = length(gene.heritable_isoforms)
-    if isnothing(gene.heritable_isoforms) || d < 3
+    if isnothing(gene.heritable_isoforms) || length(gene.heritable_isoforms) < 3
         return
     end
+    d = length(gene.heritable_isoforms)
     np = (d * (d + 1)) >> 1
     ind = ones(Int, d)
     for i in 2:length(ind)
@@ -189,7 +209,7 @@ for folder in ["univariate", "bivariate", "multivariate"]
 end
 
 function main(gencode, expr, expri, cov, geno)
-    for geneid in union(expr.pid, expri.pid)[52:end]
+    for geneid in union(expr.pid, expri.pid)
         isfile(joinpath(@__DIR__, "../results/univariate/$(geneid).tsv")) && continue
         @info "Working on $(geneid)"
         @time gene = Gene(geneid, gencode, expr, expri, cov, 1e6, geno, "both")
@@ -200,8 +220,6 @@ function main(gencode, expr, expri, cov, geno)
             rm("data/$(gene.gene_name)-cis.$(plink)")
             rm("data/$(gene.gene_name)-trans.$(plink)")
         end
-        # add try catch for numerically unstable cases
-        # add parser
     end
 end
 
