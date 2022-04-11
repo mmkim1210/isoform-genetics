@@ -21,7 +21,7 @@ function fit_uni(Y, X, V)
 end
 
 function runvc_uni!(gene::Gene)
-    @info "Fitting univariate, three variance components model"
+    @info "Fitting univariate model"
     V = [gene.grmcis, gene.grmtrans, Matrix{Float64}(I, size(gene.grmcis))]
     @info "Fitting gene"
     success_gene = Int[]
@@ -110,10 +110,10 @@ function runvc_bi(gene::Gene)
         )
     V = [gene.grmcis, gene.grmtrans, Matrix{Float64}(I, size(gene.grmcis))]
     d = length(gene.heritable_isoforms)
-    @info "Fitting bivariate, three variance components model for $d isoforms"
+    @info "Fitting bivariate model for $d isoforms"
     for i in 1:d
         for j in (i + 1):d
-            @info "Fitting $i, $j pair"
+            @info "Fitting pair ($i, $j)"
             model = MRVC(gene.Yi[:, [gene.heritable_isoforms[i], gene.heritable_isoforms[j]]], gene.X, V)
             MRVCs.fit!(model, maxiter = 3000, reml = true) 
             h², h²se = calculate_h2(model)
@@ -165,9 +165,9 @@ function runvc_mul(gene::Gene)
     end
     V = [gene.grmcis, gene.grmtrans, Matrix{Float64}(I, size(gene.grmcis))]
     d = length(gene.heritable_isoforms)
-    @info "Fitting multivariate, three variance components model for $d isoforms"
+    @info "Fitting multivariate model for $d isoforms"
     model = MRVC(gene.Yi[:, gene.heritable_isoforms], gene.X, V)
-    @time MRVCs.fit!(model, maxiter = 3000, reml = true, verbose = true)
+    MRVCs.fit!(model, maxiter = 3000, reml = true, verbose = true)
     h², h²se = calculate_h2(model)
     r₉, r₉se = calculate_rg(model)
     h2rg = reduce(hcat, [MRVCs.vech(r₉[i]) for i in 1:3])
@@ -224,3 +224,5 @@ function main(gencode, expr, expri, cov, geno)
 end
 
 main(gencode, expr, expri, cov, geno)
+
+# findfirst(isequal("ENSG00000004776"), union(expr.pid, expri.pid))
