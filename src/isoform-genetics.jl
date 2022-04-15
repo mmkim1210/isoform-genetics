@@ -149,7 +149,7 @@ if !isfile(joinpath(@__DIR__, "../data/gencode.v19.annotation.parsed.gtf.arrow")
         "end", "score", "strand", "phase", "info"])
     GeneticsMakie.parsegtf!(gencode)
     select!(gencode, :seqnames, :feature, :start, :end, :strand, :gene_id, :gene_name, :gene_type, :transcript_id)
-    @time Arrow.write(joinpath(@__DIR__, "../data/expression/gencode.v19.annotation.parsed.gtf.arrow"), gencode)
+    @time Arrow.write(joinpath(@__DIR__, "../data/gencode.v19.annotation.parsed.gtf.arrow"), gencode)
     run(`rm ./data/gencode.v19.annotation.gtf.gz`)
 end 
 @time gencode = Arrow.Table(joinpath(@__DIR__, "../data/gencode.v19.annotation.parsed.gtf.arrow"))|> DataFrame
