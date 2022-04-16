@@ -1,5 +1,5 @@
 using CSV, DataFrames, CairoMakie, ColorSchemes
-using SnpArrays, GLM, JLD, Arrow, Distributions
+using SnpArrays, GLM, Arrow, Distributions
 using GeneticsMakie, MultiResponseVarianceComponentModels
 using LinearAlgebra, Statistics
 const GM = GeneticsMakie

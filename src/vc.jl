@@ -211,7 +211,8 @@ end
 
 function main(gencode, expr, expri, cov, geno, idx)
     for geneid in union(expr.pid, expri.pid)[idx:(idx + 99)]
-        isfile(joinpath(@__DIR__, "../results/univariate/$(geneid).tsv")) && continue
+        (isfile(joinpath(@__DIR__, "../results/univariate/$(geneid).tsv")) &&
+	    !isfile(joinpath(@__DIR__, "../results/univariate/$(gencode.gene_name[findfirst(isequal(geneid), gencode.gene_id)])-cis.bed"))) && continue
         @time gene = Gene(geneid, gencode, expr, expri, cov, 1e6, geno, "both")
         @info "Working on $(gene.gene_name)"
         @time runvc_uni!(gene)
