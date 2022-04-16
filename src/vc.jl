@@ -210,11 +210,12 @@ for folder in ["univariate", "bivariate", "multivariate"]
 end
 
 function main(gencode, expr, expri, cov, geno, idx)
-    for geneid in union(expr.pid, expri.pid)[idx:(idx + 99)]
-        (isfile(joinpath(@__DIR__, "../results/univariate/$(geneid).tsv")) &&
-	    !isfile(joinpath(@__DIR__, "../results/univariate/$(gencode.gene_name[findfirst(isequal(geneid), gencode.gene_id)])-cis.bed"))) && continue
-        @time gene = Gene(geneid, gencode, expr, expri, cov, 1e6, geno, "both")
-        @info "Working on $(gene.gene_name)"
+    for gene_id in union(expr.pid, expri.pid)[idx:(idx + 99)]
+        gene_name = gencode.gene_name[findfirst(isequal(gene_id), gencode.gene_id)]
+        (isfile(joinpath(@__DIR__, "../results/univariate/$(gene_id).tsv")) &&
+	        !isfile(joinpath(@__DIR__, "../results/univariate/$(gene_name)-trans.bed"))) && continue
+        @info "Working on $(gene_name)"
+        @time gene = Gene(gene_id, gencode, expr, expri, cov, 1e6, geno, "both")
         @time runvc_uni!(gene)
         @time runvc_bi(gene)
         @time runvc_mul(gene)
