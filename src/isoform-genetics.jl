@@ -1,4 +1,4 @@
-using CSV, DataFrames, CairoMakie, RCall, ColorSchemes
+using CSV, DataFrames, CairoMakie, ColorSchemes
 using SnpArrays, GLM, JLD, Arrow, Distributions
 using GeneticsMakie, MultiResponseVarianceComponentModels
 using LinearAlgebra, Statistics

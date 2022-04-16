@@ -1,3 +1,4 @@
+idx = parse(Int, ARGS[1])
 include(joinpath(@__DIR__, "isoform-genetics.jl"))
 
 function fit_uni(Y, X, V)
@@ -147,7 +148,7 @@ function runvc_bi(gene::Gene)
                 r₉se_parsed,
                 ps, 
                 gene.ncisnps
-                ))    
+                ))
         end
     end
     CSV.write(joinpath(@__DIR__, "../results/bivariate/$(gene.gene_id).tsv"), result, delim = "\t")
@@ -208,11 +209,11 @@ for folder in ["univariate", "bivariate", "multivariate"]
         mkpath(joinpath(@__DIR__, "../results/$folder"))
 end
 
-function main(gencode, expr, expri, cov, geno)
-    for geneid in union(expr.pid, expri.pid)
+function main(gencode, expr, expri, cov, geno, idx)
+    for geneid in union(expr.pid, expri.pid)[idx:(idx + 99)]
         isfile(joinpath(@__DIR__, "../results/univariate/$(geneid).tsv")) && continue
-        @info "Working on $(geneid)"
         @time gene = Gene(geneid, gencode, expr, expri, cov, 1e6, geno, "both")
+        @info "Working on $(gene.gene_name)"
         @time runvc_uni!(gene)
         @time runvc_bi(gene)
         @time runvc_mul(gene)
@@ -223,6 +224,15 @@ function main(gencode, expr, expri, cov, geno)
     end
 end
 
-main(gencode, expr, expri, cov, geno)
+main(gencode, expr, expri, cov, geno, idx)
 
-# findfirst(isequal("ENSG00000004776"), union(expr.pid, expri.pid))
+# deal with corner cases where the isoforms are perfectly correlated
+# findfirst(isequal("ENSG00000025434"), union(expr.pid, expri.pid))
+# gene = Gene("ENSG00000075131", gencode, expr, expri, cov, 1e6, geno, "both")
+# @time runvc_uni!(gene)
+# @time runvc_bi(gene)
+# @time runvc_mul(gene)
+# for plink in ["bed", "bim", "fam"]
+#     rm("data/$(gene.gene_name)-cis.$(plink)")
+#     rm("data/$(gene.gene_name)-trans.$(plink)")
+# end
