@@ -12,7 +12,7 @@ sort(df, order(:count, rev = true))
 df[df.count .== 21, :]
 CSV.write(joinpath(@__DIR__, "../results/multivariate.tsv"), results, delim = "\t")
 
-@info "Parsing pariwise bivariate results"
+@info "Parsing pairwise bivariate results"
 files = readdir(joinpath(@__DIR__, "../results/bivariate"))
 results = Vector{DataFrame}(undef, length(files))
 for i in 1:length(files)

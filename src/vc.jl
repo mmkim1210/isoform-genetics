@@ -230,8 +230,8 @@ main(gencode, expr, expri, cov, geno, idx)
 
 # deal with corner cases where the isoforms are perfectly correlated
 # findfirst(isequal("ENSG00000025434"), union(expr.pid, expri.pid))
-# gene = Gene("SLC1A2", gencode, expr, expri, cov, 1e6, geno, "both")
-# @info "Working on gene.gene_id"
+# gene = Gene("ZHX3", gencode, expr, expri, cov, 1e6, geno, "both")
+# @info "Working on $(gene.gene_id)"
 # @time runvc_uni!(gene)
 # @time runvc_bi(gene)
 # @time runvc_mul(gene)
