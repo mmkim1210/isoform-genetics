@@ -159,3 +159,43 @@ end
 @time geno = SnpData(joinpath(@__DIR__, "../data/genotype/Capstone4.HRC.European.unique.frontal.nochr.filter.unrelated"))
 @assert (855, 4_685_674) == size(geno.snparray)
 @assert names(expri)[7:end] == geno.person_info.iid
+
+function runqtl(gene::Gene)
+    @info "Running cis-eQTL analysis"
+    d = size(gene.Yi, 2) + 1
+    qtls = Vector{DataFrame}(undef, d)
+    for i in 1:d
+        @info "Fitting $i / $d phenotype"
+        df = DataFrame(
+            SNP = String[], BETA = Float64[], SE = Float64[], Z = Float64[], 
+            P = Float64[], BP = Int64[], A1 = String[], A2 = String[], ID = String[]
+            )
+        for j in 1:size(gene.snparray, 2)
+            any(isnan.(gene.snparray[:, j])) ? continue : nothing
+            if i == 1
+                data = DataFrame(g = gene.snparray[:, j], e = gene.Yg)
+                data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
+            else
+                data = DataFrame(g = gene.snparray[:, j], e = gene.Yi[:, i - 1])
+                data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
+            end
+            model = lm(term(:e) ~ sum(term.(Symbol.(names(data, Not(:e))))), data)
+            i == 1 ? id = gene.gene_id : id = gene.expressed_isoforms[i - 1]
+            push!(df,
+                [gene.snpinfo.snpid[j], coef(model)[2], coeftable(model).cols[2][2], 
+                coeftable(model).cols[3][2], coeftable(model).cols[4][2],
+                gene.snpinfo.position[j], gene.snpinfo.allele1[j],
+                gene.snpinfo.allele2[j], id]
+                )
+        end
+        storage = Vector{String}(undef, length(df.SNP))
+        for i in 1:nrow(df)
+            snp = split(df.SNP[i], ";")
+            length(snp) > 1 ? storage[i] = snp[2] : storage[i] = snp[1]
+        end
+        df.SNP = storage
+        df.CHR .= gene.chr
+        qtls[i] = df
+    end
+    qtls, reduce(vcat, qtls)
+end
