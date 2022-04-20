@@ -69,6 +69,22 @@ function runvc_uni!(gene::Gene)
     result.ncisnps .= gene.ncisnps
     select!(result, :gene_name, :gene_id, :id, :feature, :)
     CSV.write(joinpath(@__DIR__, "../results/univariate/$(gene.gene_id).tsv"), result, delim = "\t")
+    if !isnothing(gene.heritable_isoforms) && length(gene.heritable_isoforms) > 1
+        remove = Int[]
+        d = length(gene.heritable_isoforms)
+        for i in 1:d
+            if i in remove
+                continue
+            end    
+            for j in (i + 1):d
+                if cor(gene.Yi[:, gene.heritable_isoforms[i]], gene.Yi[:, gene.heritable_isoforms[j]]) == 1
+                    push!(remove, j)
+                    continue
+                end        
+            end
+        end
+        gene.heritable_isoforms = gene.heritable_isoforms[Not(remove)]
+    end
 end
 
 function runvc_bi(gene::Gene)
@@ -230,7 +246,7 @@ main(gencode, expr, expri, cov, geno, idx)
 
 # deal with corner cases where the isoforms are perfectly correlated
 # findfirst(isequal("ENSG00000025434"), union(expr.pid, expri.pid))
-# gene = Gene("ZHX3", gencode, expr, expri, cov, 1e6, geno, "both")
+# gene = Gene("CLHC1", gencode, expr, expri, cov, 1e6, geno, "both")
 # @info "Working on $(gene.gene_id)"
 # @time runvc_uni!(gene)
 # @time runvc_bi(gene)

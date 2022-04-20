@@ -27,7 +27,7 @@ set_theme!(;
 
 @time gencode = CSV.read(joinpath(@__DIR__, "../results/XRN2/gffcmp.XRN2.filtered.gtf"), DataFrame,
     delim = "\t", skipto = 5, header = ["seqnames", "source", "feature", "start", 
-    "end", "score", "strand", "phase", "info"])
+    "end", "score", "strand", "phase", "info"]) # hg38 coordinates
 gencode.gene_id .= "ENSG00000088930"
 gencode.gene_name .= "XRN2"
 storage = Vector(undef, size(gencode, 1))
