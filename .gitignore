@@ -7,3 +7,5 @@ data/
 results/
 figs/
 log/
+submit_rescue.sh/
+src/vc-rescue.jl

@@ -7,7 +7,8 @@
 #$ -pe shared 4
 #$ -M $USER@mail 
 #$ -m a
-#$ -t 1-24947:100
+#$ -t 1-25000:100
+#$ -tc 20
 
 . /u/local/Modules/default/init/modules.sh
 module load julia/1.7

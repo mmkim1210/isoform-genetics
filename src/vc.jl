@@ -230,7 +230,7 @@ function main(gencode, expr, expri, cov, geno, idx)
         gene_name = gencode.gene_name[findfirst(isequal(gene_id), gencode.gene_id)]
         (isfile(joinpath(@__DIR__, "../results/univariate/$(gene_id).tsv")) &&
 	        !isfile(joinpath(@__DIR__, "../results/univariate/$(gene_name)-trans.bed"))) && continue
-        @info "Working on $(gene_name)"
+        @info "Working on $(gene_name) / $(gene_id)"
         @time gene = Gene(gene_id, gencode, expr, expri, cov, 1e6, geno, "both")
         @time runvc_uni!(gene)
         @time runvc_bi(gene)
