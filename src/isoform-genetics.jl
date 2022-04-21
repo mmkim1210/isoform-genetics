@@ -72,7 +72,7 @@ function Gene(
     all_isoforms = df.transcript_id
     df = filter(x -> x.pid == gene_id, expr)
     Yg = permutedims(Matrix{Float64}(df[:, 7:end]))
-    size(Yg, 2) == 1 ? Yg = vec(Yg) : nothing
+    Yg = vec(Yg)
     df = filter(x -> x.pid == gene_id, expri)
     Yi = permutedims(Matrix{Float64}(df[:, 7:end]))
     size(Yi, 2) == 1 ? Yi = vec(Yi) : nothing
