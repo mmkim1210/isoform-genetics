@@ -4,7 +4,7 @@
 #$ -o ./log/joblog.$JOB_ID.$TASK_ID 
 #$ -j y 
 #$ -l h_rt=24:00:00,h_data=8G,arch=intel*,highp
-#$ -pe shared 4
+#$ -pe shared 6
 #$ -M $USER@mail 
 #$ -m a
 #$ -t 1-25000:100

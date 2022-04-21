@@ -243,15 +243,3 @@ function main(gencode, expr, expri, cov, geno, idx)
 end
 
 main(gencode, expr, expri, cov, geno, idx)
-
-# deal with corner cases where the isoforms are perfectly correlated
-# findfirst(isequal("ENSG00000025434"), union(expr.pid, expri.pid))
-# gene = Gene("CLHC1", gencode, expr, expri, cov, 1e6, geno, "both")
-# @info "Working on $(gene.gene_id)"
-# @time runvc_uni!(gene)
-# @time runvc_bi(gene)
-# @time runvc_mul(gene)
-# for plink in ["bed", "bim", "fam"]
-#     rm("data/$(gene.gene_name)-cis.$(plink)")
-#     rm("data/$(gene.gene_name)-trans.$(plink)")
-# end
