@@ -31,5 +31,5 @@ for i in 1:length(files)
     rem(i, 100) == 0 ? println("parsed $(i) genes so far") : nothing
     uni[i] = CSV.read("results/univariate/$(files[i])", delim = "\t", DataFrame)
 end
-uni = reduce(vcat, mul)
+uni = reduce(vcat, uni)
 CSV.write("results/univariate.tsv", uni, delim = "\t")
