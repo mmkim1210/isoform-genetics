@@ -4,7 +4,9 @@ manuscript/
 papers/
 code/
 data/
-results/
+results/univariate/
+results/bivariate/
+results/multivariate/
 figs/
 log/
 src/vc-rescue.jl
