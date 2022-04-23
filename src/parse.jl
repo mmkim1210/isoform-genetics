@@ -8,9 +8,6 @@ for i in 1:length(files)
     mul[i] = CSV.read("results/multivariate/$(files[i])", delim = "\t", DataFrame)
 end
 mul = reduce(vcat, mul)
-df = combine(groupby(mul, :gene_name), nrow => :count)
-sort(df, order(:count, rev = true))
-df[df.count .== 21, :]
 CSV.write("results/multivariate.tsv", mul, delim = "\t")
 
 @info "Parsing pairwise bivariate results"
