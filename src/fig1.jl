@@ -13,7 +13,7 @@ findfirst(isequal("FAM200B"), df.gene_name) # KLHL24, SNX19, PPP2R3C, FIGNL1, PH
 # unique(risk)
 # intersect(unique(risk.genes), df.gene_name)
 
-gene = Gene("KLHL24", gencode, expr, expri, cov, 1e6, geno, "both")
+gene = Gene("KLHL24", gencode, expr, expri, cov, 1e6, geno, "cis")
 qtls, mega = runqtl(gene)
 df = mul[mul.gene_name .== "KLHL24", :]
 isoforms = unique(df.id)
@@ -31,9 +31,9 @@ function parse_mul(result, transcript_id)
         ind2 = findfirst(isequal(result.pair[i]), transcript_id)
         if ind1 != ind2
             for j in 1:3
-                Σ̂[1][ind1, ind2] = Σ̂[1][ind2, ind1] = 10 * result[i, "var/covar_cis_reml"]
-                Σ̂[2][ind1, ind2] = Σ̂[2][ind2, ind1] = 10 * result[i, "var/covar_trans_reml"]
-                Σ̂[3][ind1, ind2] = Σ̂[3][ind2, ind1] = 10 * result[i, "var/covar_res_reml"]
+                Σ̂[1][ind1, ind2] = Σ̂[1][ind2, ind1] = 4 * result[i, "var/covar_cis_reml"]
+                Σ̂[2][ind1, ind2] = Σ̂[2][ind2, ind1] = 4 * result[i, "var/covar_trans_reml"]
+                Σ̂[3][ind1, ind2] = Σ̂[3][ind2, ind1] = 4 * result[i, "var/covar_res_reml"]
             end
         else
             for j in 1:3
@@ -47,6 +47,7 @@ function parse_mul(result, transcript_id)
 end
 Σ̂ = parse_mul(df, isoforms_sorted)
 Σ̂p = Σ̂[1] + Σ̂[2] + Σ̂[3]
+Σ̂p[7, 7] = Σ̂p[6, 6] = 2.0
 Σ̂ ./= maximum(vec(Σ̂p))
 Σ̂p ./= maximum(vec(Σ̂p))
 
@@ -86,10 +87,10 @@ begin
     [hidespines!(axs[i]) for i in [1, 3]]
     [hidedecorations!(axs[i]) for i in [1, 3]]
     @info "Plotting variance components model"
-    GM.plotrg!(axs[5], Σ̂p, "Iso" .* string.(1:d))
-    GM.plotrg!(axs[6], Σ̂[1], "Iso" .* string.(1:d))
-    GM.plotrg!(axs[7], Σ̂[2], "Iso" .* string.(1:d))
-    GM.plotrg!(axs[8], Σ̂[3], "Iso" .* string.(1:d))
+    GM.plotrg!(axs[5], Σ̂p, "Iso" .* string.(1:d), diag = true)
+    GM.plotrg!(axs[6], Σ̂[1], "Iso" .* string.(1:d), diag = true)
+    GM.plotrg!(axs[7], Σ̂[2], "Iso" .* string.(1:d), diag = true)
+    GM.plotrg!(axs[8], Σ̂[3], "Iso" .* string.(1:d), diag = true)
     [hidedecorations!(axs[i]) for i in 5:8]
     Label(gs[2][2, 1, Left()], "Isoforms", textsize = 6, rotation = π / 2)
     [Label(gs[2][2, i, Bottom()], "Isoforms", textsize = 6) for i in 1:4]
@@ -133,14 +134,20 @@ begin
     Label(gs[3][2, 1, Top()], "SNP effects", textsize = 6)
     Label(gs[3][2, 1, Left()], "Isoforms", textsize = 6, rotation = π / 2)
     hidedecorations!(axs[11])
-    hidespines!(axs[12])
-    hidedecorations!(axs[12])
+    LD = cor(gene.snparray[:, findall(x -> range1 - 1e5 < x < range2 + 1e5, gene.snpinfo.position)])
+    LD .= LD.^2
+    GM.plotld!(axs[12], LD; color = "green")
+    rowsize!(g3, 3, Aspect(1, 0.5))
+    rowgap!(g3, 2, 0)
+    ylims!(axs[12], 0, 5)
+    xlims!(axs[12], 0, 10)
+    hidespines!(axs[12], :t)
     hidespines!(axs[13])
     hidedecorations!(axs[13])
     rowgap!(f.layout, 10)
     colgap!(f.layout, 10)
     colsize!(f.layout, 1, 250)
-    save("figure1-$(gene.gene_name).pdf", f, px_per_unit = 4)
+    save("figure1.pdf", f, px_per_unit = 4)
 end
 
 for plink in ["bed", "bim", "fam"]
