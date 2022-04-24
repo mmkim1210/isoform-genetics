@@ -18,4 +18,7 @@ pkg> instantiate
     │   └── kgp.eur.maf0.05.{bed,bim,fam}                                               # 1000 Genomes data subsetted to European individuals
     └── gwas                                                                            # gwas summary statistics
 
+## Schematic
+<p align="center"><img width="100%" style="border-radius: 5px;" src="schematic.png"></p>
+
 ## References
