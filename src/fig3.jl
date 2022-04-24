@@ -14,41 +14,13 @@ uni = CSV.read("results/univariate.tsv", DataFrame)
 bi = CSV.read("results/bivariate.tsv", DataFrame)
 mul = CSV.read("results/multivariate.tsv", DataFrame)
 
-gene_name = "ATP9B"
-window = 1e6
-@time gene = Gene(gene_name, gencode, expr, expri, cov, 1e6, geno, "cis")
-range1 = gene.start - window
-range2 = gene.stop + window
+df = combine(groupby(mul, :gene_name), nrow => :count)
+sort!(df, order(:count, rev = true))
+df = df[df.count .>= 28, :]
+genes = df.gene_name[Not(45)]
 
-storage = filter(row -> row.feature == "gene" && row.gene_id == gene.gene_id, uni)
-storage.p[1] < 0.05 ? gene.gene_heritable = true : nothing
-
-qtls, _ = runqtl(gene)
-
-storage = filter(row -> row.feature == "isoform" && row.gene_id == gene.gene_id && row.p < 0.05, uni)
-heritable_isoforms = unique(storage.id)
-
-qtls_ind = []
-for isoform in heritable_isoforms
-    push!(qtls_ind, findfirst(isequal(isoform), gene.expressed_isoforms))
-end
-qtls_ind .+= 1
-pushfirst!(qtls_ind, 1)
-qtls_subset = qtls[qtls_ind]
-
-[qtls_subset[i].ID[1] for i in 1:10]
-
-@info "Subsetting GWAS results"
-@time dfs = subsetgwas(gwas, gene.chr, range1, range2)
-gwas_ind = []
-for i in 1:length(dfs)
-    if issig(dfs[i])
-        push!(gwas_ind, i)
-    end
-end
-
-@info "Subsetting 1000 Genomes"
-@time kgp = subsetref(kgp_raw, gene.chr, range1, range2, joinpath.(@__DIR__, "../data/kgp.filtered"))
+genes = genes[5:end]
+findfirst(isequal("CMC2"), genes)
 
 function calculate_h2_uni(result, gene)
     storage = filter(row -> row.feature == "isoform" && row.gene_id == gene.gene_id && row.p < 0.05, result)
@@ -119,7 +91,37 @@ function parse_mul(result, gene, heritable_isoforms)
     h2, h2_se, rg, rg_p
 end
 
-begin
+for gene_name in genes
+    @info "Working on $(gene_name)" # RBM23, COA1, FAM153A, WDR27, PCM1, AKAP13
+    window = 1e6
+    @time gene = Gene(string.(gene_name), gencode, expr, expri, cov, 1e6, geno, "cis")
+    range1 = gene.start - window
+    range2 = gene.stop + window
+    storage = filter(row -> row.feature == "gene" && row.gene_id == gene.gene_id, uni)
+    if !isempty(storage.p)
+        storage.p[1] < 0.05 ? gene.gene_heritable = true : nothing
+    end
+    qtls, _ = runqtl(gene)
+    storage = filter(row -> row.feature == "isoform" && row.gene_id == gene.gene_id && row.p < 0.05, uni)
+    heritable_isoforms = unique(storage.id)
+    qtls_ind = []
+    for isoform in heritable_isoforms
+        push!(qtls_ind, findfirst(isequal(isoform), gene.expressed_isoforms))
+    end
+    qtls_ind .+= 1
+    pushfirst!(qtls_ind, 1)
+    qtls_subset = qtls[qtls_ind]
+    @info "Subsetting GWAS results"
+    @time dfs = subsetgwas(gwas, gene.chr, range1, range2)
+    gwas_ind = []
+    for i in 1:length(dfs)
+        if issig(dfs[i])
+            push!(gwas_ind, i)
+        end
+    end
+    @info "Subsetting 1000 Genomes"
+    @time kgp = subsetref(kgp_raw, gene.chr, range1, range2, joinpath.(@__DIR__, "../data/kgp.filtered"))
+
     txid = [heritable_isoforms; setdiff(gene.expressed_isoforms, heritable_isoforms)]
     n = length(heritable_isoforms)
     m = length(gene.all_isoforms)
@@ -185,10 +187,10 @@ begin
     Label(g1[2, 1:4, TopLeft()], "B", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     # colors = cgrad(ColorSchemes.jgreen, 4, categorical = true)
     colors = ["#9658B2", "#389826"]
-    Legend(g1[2, 1:4], [PolyElement(color = colors[i], strokewidth = 1) for i in 1:2], ["cis", "trans"],
+    Legend(g1[2, 1:4], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:2], ["cis", "trans"],
         tellwidth = false, tellheight = false, rowgap = 0, halign = :left, valign = :top,
         framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
-
+    
     @info "Plotting panel c"
     axs2 = [Axis(g1[i, j]) for i in 3:6, j in 1:3]
     for i in 1:n
@@ -265,6 +267,7 @@ begin
     rowgap!(g1, 5)
     colgap!(g1, 5)
     rowgap!(g1, 3, 1)
+    rowgap!(g1, 5, 1)
 
     @info "Plotting panel e"
     l = length(gwas_ind) + n + 2
@@ -316,5 +319,8 @@ begin
     colgap!(f.layout, 1, 5)
     resize_to_layout!(f)
     # save("figure3.pdf", f, pt_per_unit = 1)
-    save("figure3.png", f, px_per_unit = 4)
+    save("figure3-$(gene.gene_name).png", f, px_per_unit = 4)
+    for plink in ["bed", "bim", "fam"]
+        rm("data/$(gene.gene_name)-cis.$(plink)")
+    end
 end
