@@ -164,6 +164,8 @@ function runqtl(gene::Gene)
     @info "Running cis-eQTL analysis"
     d = size(gene.Yi, 2) + 1
     qtls = Vector{DataFrame}(undef, d)
+    data = DataFrame(g = gene.snparray[:, 1], e = gene.Yg)
+    data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
     for i in 1:d
         @info "Fitting $i / $d phenotype"
         df = DataFrame(
@@ -172,13 +174,10 @@ function runqtl(gene::Gene)
             )
         for j in 1:size(gene.snparray, 2)
             any(isnan.(gene.snparray[:, j])) ? continue : nothing
-            if i == 1
-                data = DataFrame(g = gene.snparray[:, j], e = gene.Yg)
-                data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
-            else
-                data = DataFrame(g = gene.snparray[:, j], e = gene.Yi[:, i - 1])
-                data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
+            if i > 1
+                data.e = gene.Yi[:, i - 1]
             end
+            data.g =  gene.snparray[:, j]
             model = lm(term(:e) ~ sum(term.(Symbol.(names(data, Not(:e))))), data)
             i == 1 ? id = gene.gene_id : id = gene.expressed_isoforms[i - 1]
             push!(df,
@@ -199,3 +198,19 @@ function runqtl(gene::Gene)
     end
     qtls, reduce(vcat, qtls)
 end
+
+function subsetref(ref::SnpData, chr::AbstractString, range1::Real, range2::Real, path::AbstractString)
+    SnpArrays.filter(ref, trues(size(ref)[1]), GeneticsMakie.findlocus(ref, chr, range1, range2); des = path)
+    SnpData(path)
+end
+
+function subsetgwas(gwas, chr, range1, range2)
+    dfs = Vector{DataFrame}(undef, length(gwas))
+    for i in 1:length(gwas)
+        dfs[i] = gwas[i][GeneticsMakie.findlocus(gwas[i], chr, range1, range2), :]
+    end
+    dfs
+end
+
+issig(P::AbstractVector; p = 5e-8) = any(P .< p)
+issig(df::DataFrame; p = 5e-8) = issig(df.P; p = p)

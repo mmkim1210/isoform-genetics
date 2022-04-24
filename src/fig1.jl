@@ -147,7 +147,8 @@ begin
     rowgap!(f.layout, 10)
     colgap!(f.layout, 10)
     colsize!(f.layout, 1, 250)
-    save("figure1.pdf", f, px_per_unit = 4)
+    # save("figure1.svg", f, pt_per_unit = 1)
+    save("figure1.pdf", f, pt_per_unit = 1)
 end
 
 for plink in ["bed", "bim", "fam"]

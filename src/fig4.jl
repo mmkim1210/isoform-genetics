@@ -10,19 +10,6 @@ end
 @info "Loading 1000 Genomes"
 @time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.eur.maf0.05"))
 
-function subsetref(ref::SnpData, chr::AbstractString, range1::Real, range2::Real, path::AbstractString)
-    SnpArrays.filter(ref, trues(size(ref)[1]), GeneticsMakie.findlocus(ref, chr, range1, range2); des = path)
-    SnpData(path)
-end
-
-function subsetgwas(gwas, chr, range1, range2)
-    dfs = Vector{DataFrame}(undef, length(gwas))
-    for i in 1:length(gwas)
-        dfs[i] = gwas[i][GeneticsMakie.findlocus(gwas[i], chr, range1, range2), :]
-    end
-    dfs
-end
-
 genes_to_focus = ["XRN2", "TBL1XR1", "SYNE1", "SYT1"]
 isoforms_to_focus = [
     ["ENST00000430571"], 
@@ -39,7 +26,7 @@ for gene_name in genes_to_focus
     window = 1e6
     @time gene = Gene(gene_name, gencode, expr, expri, cov, 1e6, geno, "cis")
     push!(genes, gene)
-    @time qtls = runqtl(gene)
+    @time qtls, _ = runqtl(gene)
     push!(qtls_all, qtls)
 end
 
@@ -76,10 +63,10 @@ begin
         end        
         for j in 1:(n + 1)
             if j == 1
-                GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][1][1])
+                GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][1])
                 Label(gs[i][j, 1, Top()], "$(genes[i].gene_id)", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
             else
-                GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][1][ind[j - 1] + 1]; ld = kgp)
+                GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][ind[j - 1] + 1]; ld = kgp)
                 Label(gs[i][j, 1, Top()], "$(isoforms_to_focus[i][j - 1])", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
             end
             rowsize!(gs[i], j, 30)
@@ -121,5 +108,6 @@ begin
     rowgap!(f.layout, 5)
     colgap!(f.layout, 5)
     # resize_to_layout!(f)
-    save("figure4.pdf", f, px_per_unit = 4)
+    # save("figure4.svg", f, pt_per_unit = 1)
+    save("figure4.pdf", f, pt_per_unit = 1)
 end
