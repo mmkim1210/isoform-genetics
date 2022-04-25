@@ -199,6 +199,35 @@ function runqtl(gene::Gene)
     qtls, reduce(vcat, qtls)
 end
 
+gene = Gene("ATP9B", gencode, expr, expri, cov, 1e6, geno, "cis")
+
+function calculate_rp(gene::Gene, univariate)
+    storage = filter(row -> row.feature == "isoform" && row.gene_id == gene.gene_id && row.p < 0.05, univariate)
+    ind = [findfirst(isequal(iso), gene.expressed_isoforms) for iso in storage.id]
+    d = length(ind)
+    regressed = Matrix{Float64}(undef, size(gene.Yi, 1), d)
+    data = DataFrame(e = gene.Yg)
+    data = hcat(data, DataFrame(gene.X[:, 2:end], :auto))
+    for i in 1:d
+        data.e = gene.Yi[:, ind[i]]
+        model = lm(term(:e) ~ sum(term.(Symbol.(names(data, Not(:e))))), data)
+        regressed[:, i] = data.e - Matrix(data[:, 2:end]) * coef(model)[2:end]
+    end
+    cor(regressed)
+end
+
+function loadgwas()
+    @info "Load GWAS results."
+    delete!(GM.gwas, "mdd")
+    gwas = []
+    for key in keys(GM.gwas)
+        push!(gwas, DataFrame(Arrow.Table(joinpath.("data/gwas/processed/", key * ".tsv.arrow"))))
+    end
+    @info "Loading 1000 Genomes"
+    @time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.eur.maf0.05"))
+    gwas, kgp_raw
+end
+
 function subsetref(ref::SnpData, chr::AbstractString, range1::Real, range2::Real, path::AbstractString)
     SnpArrays.filter(ref, trues(size(ref)[1]), GeneticsMakie.findlocus(ref, chr, range1, range2); des = path)
     SnpData(path)
