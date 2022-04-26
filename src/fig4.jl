@@ -101,7 +101,7 @@ begin
             colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
             tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
             labelsize = 6, width = 5, spinewidth = 0.5)
-        Label(gs[i][1:(n + m + 1), 1, Left()], text = "-log[p]", textsize = 6, rotation = pi / 2)
+        Label(gs[i][1:(n + m + 1), 1, Left()], text = "-log[p]", textsize = 6, rotation = π / 2)
         rowgap!(gs[i], 5)
         colgap!(gs[i], 5)
     end
