@@ -122,11 +122,11 @@ range2 > GM.GRCh37_totlength[gene.chr] ? range2 = GM.GRCh37_totlength[gene.chr] 
 titles = [GM.gwas[key].title for key in keys(GM.gwas)]
 
 begin
-    f = Figure(resolution = (612, 792))
+    f = Figure(resolution = (530, 792))
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
     @info "Plotting panel a"
-    axs1 = [Axis(g1[i, 1:4]) for i in 1:2]
+    axs1 = [Axis(g1[1, 1:4]; alignmode = Outside()), Axis(g1[2, 1:4])]
     rs, _, range1_iso, range2_iso = GM.plotisoforms!(axs1[1], gene_name, gencode; 
         orderby = heritable_isoforms, isoformcolor = "gray60", height = 0.1, text = :left,
         highlight = (txid, [fill("#CB3C33", n); fill("#4062D8", length(txid) - n)]))
@@ -159,15 +159,13 @@ begin
     ticks = Vector{Float64}(undef, n)
     for i in 1:n
         ys = [h²cis_uni[i]; h²cis_bi[:, i]; h2_mul[1][i]]
-        barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jpurple), 
-            strokecolor = :black, strokewidth = 0.25, gap = 0)
+        barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jpurple), gap = 0)
         errorbars!(axs1[2], xs, ys, [h2cis_uni_se[i]; h²cis_bi_se[:, i]; h2_mul_se[1][i]], 
             linewidth = 0.25, color = ("black", 0.8))
         xs = xs .+ (4 + step(xs) * 1.5)
         ticks[i] = minimum(xs) - 0.75 * step(xs)
         ys = [h²trans_uni[i]; h²trans_bi[:, i]; h2_mul[2][i]]
-        barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jgreen), 
-            strokecolor = :black, strokewidth = 0.25, gap = 0)
+        barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jgreen), gap = 0)
         errorbars!(axs1[2], xs, ys, [h2trans_uni_se[i]; h²trans_bi_se[:, i]; h2_mul_se[2][i]], 
             linewidth = 0.25, color = ("black", 0.8))
         xs = xs .+ (4 + step(xs) * 2)
@@ -333,7 +331,7 @@ begin
     # end
     rowgap!(g2, 5)
     colgap!(g2, 5)
-    colgap!(f.layout, 1, 5)
+    colgap!(f.layout, 1, 0)
     resize_to_layout!(f)
     save("figure3.pdf", f, pt_per_unit = 1)
     # save("figure3-$(gene.gene_name).png", f, px_per_unit = 4)
