@@ -31,7 +31,7 @@ for gene_name in genes_to_focus
 end
 
 begin
-    f = Figure(resolution = (612, 792))
+    f = Figure(resolution = (530, 792))
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
     ga = g1[1, 1] = GridLayout()
@@ -105,8 +105,8 @@ begin
         rowgap!(gs[i], 5)
         colgap!(gs[i], 5)
     end
-    rowgap!(f.layout, 5)
-    colgap!(f.layout, 5)
+    rowgap!(f.layout, 2)
+    colgap!(f.layout, 0)
     # resize_to_layout!(f)
     # save("figure4.svg", f, pt_per_unit = 1)
     save("figure4.pdf", f, pt_per_unit = 1)

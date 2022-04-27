@@ -199,8 +199,6 @@ function runqtl(gene::Gene)
     qtls, reduce(vcat, qtls)
 end
 
-gene = Gene("ATP9B", gencode, expr, expri, cov, 1e6, geno, "cis")
-
 function calculate_rp(gene::Gene, univariate)
     storage = filter(row -> row.feature == "isoform" && row.gene_id == gene.gene_id && row.p < 0.05, univariate)
     ind = [findfirst(isequal(iso), gene.expressed_isoforms) for iso in storage.id]
