@@ -126,14 +126,14 @@ begin
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
     @info "Plotting panel a"
-    axs1 = [Axis(g1[1, 1:4]; alignmode = Outside()), Axis(g1[2, 1:4])]
+    axs1 = [Axis(g1[1, 1:4]; alignmode = Outside()), Axis(g1[2, 1:4]), Axis(g1[3, 1:4])]
     rs, _, range1_iso, range2_iso = GM.plotisoforms!(axs1[1], gene_name, gencode; 
         orderby = heritable_isoforms, isoformcolor = "gray60", height = 0.1, text = :left,
         highlight = (txid, [fill("#CB3C33", n); fill("#4062D8", length(txid) - n)]))
     rowsize!(g1, 1, rs)
     GM.labelgenome(g1[1, 1:4, Bottom()], gene.chr, range1_iso, range2_iso)
     Label(g1[1, 1:4, Top()], "$(gene_name) isoforms", textsize = 8)
-    Label(g1[1, 1:4, TopLeft()], "A", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[1, 1:4, TopLeft()], "a", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     ax2 = Axis(g1[1, 1:4])
     ylims!(ax2, 0.875 - (m - 1) * 0.125, 1.05)
     ax2.yticks = ([0.95 - (j - 1) * 0.125 for j in 1:m], ["← Iso" .* string.(1:n); fill("", m - n)])
@@ -162,24 +162,34 @@ begin
         barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jpurple), gap = 0)
         errorbars!(axs1[2], xs, ys, [h2cis_uni_se[i]; h²cis_bi_se[:, i]; h2_mul_se[1][i]], 
             linewidth = 0.25, color = ("black", 0.8))
-        xs = xs .+ (4 + step(xs) * 1.5)
-        ticks[i] = minimum(xs) - 0.75 * step(xs)
-        ys = [h²trans_uni[i]; h²trans_bi[:, i]; h2_mul[2][i]]
-        barplot!(axs1[2], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jgreen), gap = 0)
-        errorbars!(axs1[2], xs, ys, [h2trans_uni_se[i]; h²trans_bi_se[:, i]; h2_mul_se[2][i]], 
-            linewidth = 0.25, color = ("black", 0.8))
-        xs = xs .+ (4 + step(xs) * 2)
+        ticks[i] = mean(extrema(xs))
+        xs = xs .+ (4 + step(xs) * 4)
     end
-    xlims!(axs1[2], 1 - step(xs), minimum(xs) - step(xs))
-    ylims!(axs1[2], 0, 1.25)
-    hidexdecorations!(axs1[2], ticklabels = false)
+    xs = range(1, 5, length = n + 1)
+    for i in 1:n
+        ys = [h²trans_uni[i]; h²trans_bi[:, i]; h2_mul[2][i]]
+        barplot!(axs1[3], xs, ys, fillto = -1, color = 1:(n + 1), colormap = (:jgreen), gap = 0)
+        errorbars!(axs1[3], xs, ys, [h2trans_uni_se[i]; h²trans_bi_se[:, i]; h2_mul_se[2][i]], 
+            linewidth = 0.25, color = ("black", 0.85))
+        xs = xs .+ (4 + step(xs) * 4)
+    end
+    xlims!(axs1[2], 1 - step(xs) * 4, minimum(xs))
+    ylims!(axs1[2], 0, 0.14)
+    hidexdecorations!(axs1[2])
     hideydecorations!(axs1[2], ticks = false, ticklabels = false)
+    xlims!(axs1[3], 1 - step(xs) * 4, minimum(xs))
+    ylims!(axs1[3], 0, 0.95)
+    hidexdecorations!(axs1[3], ticklabels = false)
+    hideydecorations!(axs1[3], ticks = false, ticklabels = false)
     Label(g1[2, 1:4, Top()], "Comparison of heritability estimates", textsize = 8)
-    axs1[2].yticks = 0:0.25:1.0
+    axs1[2].yticks = 0:0.05:0.22
     axs1[2].xticks = (ticks, "Iso" .* string.(1:n))
     # ax3 = Axis(g1[2, 1], title = L"Comparison of $h^2_{SNP}$ estimates", titlesize = 8)
+    axs1[3].yticks = 0:0.25:0.8
+    axs1[3].xticks = (ticks, "Iso" .* string.(1:n))
     rowsize!(g1, 2, 45)
-    Label(g1[2, 1:4, TopLeft()], "B", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    rowsize!(g1, 3, 45)
+    Label(g1[2, 1:4, TopLeft()], "b", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     # colors = cgrad(ColorSchemes.jgreen, 4, categorical = true)
     colors = ["#9658B2", "#389826"]
     Legend(g1[2, 1:4], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:2], ["cis", "trans"],
@@ -187,7 +197,7 @@ begin
         framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
 
     @info "Plotting panel c"
-    axs2 = [Axis(g1[i, j]) for i in 3:6, j in 1:3]
+    axs2 = [Axis(g1[i, j]) for i in 4:7, j in 1:3]
     for i in 1:n
         for j in (i + 1):n
             rg_mul[1][i, j] = rg_bi[1][i, j]
@@ -201,25 +211,25 @@ begin
     GM.plotrg!(axs2[2, 1], rg_mul[1], "Iso" .* string.(1:n), p = rg_mul_p[1])
     GM.plotrg!(axs2[2, 2], rg_mul[2], "Iso" .* string.(1:n), p = rg_mul_p[2])
     GM.plotrg!(axs2[2, 3], rg_mul[3], "Iso" .* string.(1:n), p = rg_mul_p[3])
-    [Label(g1[4, j, Right()], "Pairwise bivariate", textsize = 6, rotation = -π / 2) for j in 1:3]
-    [Label(g1[4, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
+    [Label(g1[5, j, Right()], "Pairwise bivariate", textsize = 6, rotation = -π / 2) for j in 1:3]
+    [Label(g1[5, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
     for i in 1:3
         axs2[2, i].xaxisposition = :top
         if n >= 7
             axs2[2, i].xticklabelrotation = π / 4
         end
     end
-    Colorbar(g1[4, 4], limits = (-1, 1), ticks = -1:1:1,
+    Colorbar(g1[5, 4], limits = (-1, 1), ticks = -1:1:1,
         colormap = :RdBu_10, label = "", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5, tellheight = false)
-    rowsize!(g1, 4, Aspect(3, 1))
-    Label(g1[3, 1:4, TopLeft()], "C", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
-    Label(g1[3, 1:4, Top()], "Comparison of genetic correlation estimates", textsize = 8)
-    Label(g1[3, 1, Bottom()], "Cis-SNP effects", textsize = 6)
-    Label(g1[3, 2, Bottom()], "Trans-SNP effects", textsize = 6)
-    Label(g1[3, 3, Bottom()], "Residual effects", textsize = 6)
-    rowsize!(g1, 3, 0.1)
+    rowsize!(g1, 5, Aspect(3, 1))
+    Label(g1[4, 1:4, TopLeft()], "c", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[4, 1:4, Top()], "Comparison of genetic correlation estimates", textsize = 8)
+    Label(g1[4, 1, Bottom()], "Cis-SNP effects", textsize = 6)
+    Label(g1[4, 2, Bottom()], "Trans-SNP effects", textsize = 6)
+    Label(g1[4, 3, Bottom()], "Residual effects", textsize = 6)
+    rowsize!(g1, 4, 0.1)
     [hidespines!(axs2[1, j]) for j in 1:3]
     [hidedecorations!(axs2[1, j]) for j in 1:3]
 
@@ -238,35 +248,35 @@ begin
     GM.plotrg!(axs2[4, 1], rg_mul[1], "Iso" .* string.(1:n), p = rg_mul_p[1])
     GM.plotrg!(axs2[4, 2], rg_mul[2], "Iso" .* string.(1:n), p = rg_mul_p[2])
     GM.plotrg!(axs2[4, 3], rg_mul[3], "Iso" .* string.(1:n), p = rg_mul_p[3])
-    [Label(g1[6, j, Right()], "Phenotypic correlation", textsize = 6, rotation = -π / 2) for j in 1:3]
-    [Label(g1[6, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
+    [Label(g1[7, j, Right()], "Phenotypic correlation", textsize = 6, rotation = -π / 2) for j in 1:3]
+    [Label(g1[7, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
     for i in 1:3
         axs2[4, i].xaxisposition = :top
         if n >= 7
             axs2[4, i].xticklabelrotation = π / 4
         end
     end
-    Colorbar(g1[6, 4], limits = (-1, 1), ticks = -1:1:1,
+    Colorbar(g1[7, 4], limits = (-1, 1), ticks = -1:1:1,
         colormap = :RdBu_10, label = "", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5, tellheight = false)
-    rowsize!(g1, 6, Aspect(3, 1))
-    Label(g1[5, 1:4, TopLeft()], "D", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
-    Label(g1[5, 1:4, Top()], "Comparison with phenotypic correlation", textsize = 8)
-    Label(g1[5, 1, Bottom()], "Cis SNP effects", textsize = 6)
-    Label(g1[5, 2, Bottom()], "Trans SNP effects", textsize = 6)
-    Label(g1[5, 3, Bottom()], "Residual effects", textsize = 6)
-    rowsize!(g1, 5, 0.1)
+    rowsize!(g1, 7, Aspect(3, 1))
+    Label(g1[6, 1:4, TopLeft()], "d", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[6, 1:4, Top()], "Comparison with phenotypic correlation", textsize = 8)
+    Label(g1[6, 1, Bottom()], "Cis SNP effects", textsize = 6)
+    Label(g1[6, 2, Bottom()], "Trans SNP effects", textsize = 6)
+    Label(g1[6, 3, Bottom()], "Residual effects", textsize = 6)
+    rowsize!(g1, 6, 0.1)
     [hidespines!(axs2[3, j]) for j in 1:3]
     [hidedecorations!(axs2[3, j]) for j in 1:3]
-    ax3 = Axis(g1[7, 1:4])
+    ax3 = Axis(g1[8, 1:4])
     hidespines!(ax3)
     hidedecorations!(ax3)
     rowgap!(g1, 5)
     colgap!(g1, 5)
-    rowgap!(g1, 3, 1)
-    rowgap!(g1, 5, 1)
-
+    rowgap!(g1, 4, 1)
+    rowgap!(g1, 6, 1)
+    rowgap!(g1, 2, 2.5)
     @info "Plotting panel e"
     # l = length(gwas_ind) + n + 2
     l = n + 2
