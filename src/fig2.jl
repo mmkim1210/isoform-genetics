@@ -12,7 +12,7 @@ end
 resultsg = filter(row -> row.feature == "gene", results[1])
 @assert size(resultsg, 1) == 22965
 resultsi = filter(row -> row.feature == "isoform", results[1])
-@assert size(resultsi, 1) == 89925
+@assert size(resultsi, 1) == 89926
 
 df1 = results[3][Not(isnan.(results[3].p_res)), :]
 select!(df1, [3; 5:16; 4])
@@ -38,8 +38,6 @@ for i in 1:nrow(df_rg)
 end
 
 df_rg_mul = results[3][Not(isnan.(results[3].p_res)), :]
-filter!(row -> row.id != "ENST00000002125", df_rg_mul)
-filter!(row -> row.pair != "ENST00000002125", df_rg_mul)
 select!(df_rg_mul, 3:16)
 df_rg_bi = DataFrame()
 for i in 1:size(df_rg_mul, 1)
@@ -62,14 +60,13 @@ for gene in genes_bionly
 end
 rename!(df2, names(df1))
 df_h2 = vcat(df1, df2)
-df_h2 = df_h2[Not(18), :]
 df_uni = DataFrame()
 for iso in df_h2.id
     ind = findfirst(isequal(iso), resultsi.id)
     storage = resultsi[ind, [3; 5:16]]
     df_uni = vcat(df_uni, DataFrame(storage))
 end
-@assert size(df_h2, 1) == 11338
+@assert size(df_h2, 1) == 11339
 
 hist(results[3].p_res[Not(isnan.(results[3].p_res))], bins = 300)
 hist(results[3][Not(isnan.(results[3].p_res)), "h2/re_reml"], bins = 300)
@@ -449,5 +446,4 @@ end
 
 @info "Polygenicity of cis effects"
 # polygenicity (# of conditionally independent signals) + vcsel + index SNP R²
-
 # https://juliadatascience.io/makie_layouts
