@@ -107,12 +107,13 @@ let
     Label(g1[2, 3, Top()], "Isoforms", textsize = 6)
     @info "Distribution of r₉ estimates for multivariate model"
     for i in 1:3
-        hist!(axs1[3], df[:, 7 + i], offset = -2i, scale_to = 1.5, bins = 100, color = colors[i])
-        boxplot!(axs1[3], fill(-2i - 0.3, size(df, 1)), df[:, 7 + i], orientation = :horizontal,
+        hist!(axs1[3], df_rg[:, 7 + i], offset = -2i, scale_to = 1.5, bins = 100, color = colors[i])
+        boxplot!(axs1[3], fill(-2i - 0.3, size(df_rg, 1)), df_rg[:, 7 + i], orientation = :horizontal,
             show_outliers = false, width = 0.4, color = colors[i])
     end
     [axs1[j].yticks = ([-2, -4, -6], fill("", 3)) for j in 1:3]
-    [hidedecorations!(axs1[j], ticks = false, ticklabels = false) for j in 1:3]
+    [hidexdecorations!(axs1[j], ticks = false, ticklabels = false) for j in 1:3]
+    [hideydecorations!(axs1[j]) for j in 1:3]
     [xlims!(axs1[j], -0.05, 1.05) for j in 1:2]
     xlims!(axs1[3], -1.05, 1.05)
     rowsize!(g1, 2, Aspect(3, 1))
