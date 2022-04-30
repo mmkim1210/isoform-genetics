@@ -72,12 +72,21 @@ nsamples = Int[]
 for isoform in unique(xrn2.transcript_id)
     push!(nsamples, parse(Int, xrn2[findfirst(isequal(isoform), xrn2.transcript_id), :num_samples]))
 end
+colors = ["#4062D8", "#389826", "#9658B2", "#CB3C33"]
+cs = []
+for i in eachindex(nsamples)
+    push!(cs, colors[findfirst(isequal(nsamples[i]), unique(nsamples))])
+end
 @time let
     f = Figure(resolution = (306, 792))
     ax = Axis(f[1, 1])
     rs, chr, range1, range2 = GM.plotisoforms!(ax, "XRN2", xrn2; height = 0.1,
-        highlight = (["TCONS_00530677"], ["#CB3C33"]))
+        orderby = ["TCONS_00530677"],
+        highlight = (unique(xrn2.transcript_id), cs))
     GM.labelgenome(f[1, 1, Bottom()], chr, range1, range2)
+    Legend(f[1, 1], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:4], string.(unique(nsamples)),
+        tellwidth = false, tellheight = false, rowgap = 0, halign = :left, valign = :bottom,
+        framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
     rowsize!(f.layout, 1, rs)
     resize_to_layout!(f)
     save("figs/XRN2-long-read.png", f, px_per_unit = 4)
