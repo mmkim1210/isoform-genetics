@@ -64,7 +64,8 @@ end
 # gencode.cmp_ref_gene = [getindex(i, 1) for i in split.(gencode.cmp_ref_gene, ".")]
 # gencode.cmp_ref = [getindex(i, 1) for i in split.(gencode.cmp_ref, ".")]
 
-xrn2 = gencode[findall(isequal("ENSG00000088930.8"), gencode.cmp_ref_gene), :]
+gene_id = gencode.cmp_ref_gene[findfirst(isequal("XRN2"), gencode.gene_name)]
+xrn2 = gencode[findall(isequal(gene_id), gencode.cmp_ref_gene), :]
 xrn2 = gencode[findall(in(xrn2.transcript_id), gencode.transcript_id), :]
 xrn2.gene_name .= "XRN2"
 xrn2[findall(isequal("TCONS_00530677"), xrn2.transcript_id), :]
@@ -89,7 +90,7 @@ end
         framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
     rowsize!(f.layout, 1, rs)
     resize_to_layout!(f)
-    save("figs/XRN2-long-read.png", f, px_per_unit = 4)
+    save("figs/$(gene_id)-long-read.png", f, px_per_unit = 4)
 end
 
 # q1: GENCODE/gencode.v40.annotation.gtf
@@ -99,3 +100,5 @@ end
 # q5: “Mill/Filtered - Primary dataset/HumanCTX_sqantitamafiltered.final.classification.gtf”
 # q6: PacBio/Alzheimer_IsoSeq2019.postFilter.gtf
 # q7: PacBio/UHR_IsoSeq.gff
+
+# RBFOX1, CACNA1C, GRIN2A, SP4, FAM120A, STAG1, CSMD1, DRD2, KMT2E
