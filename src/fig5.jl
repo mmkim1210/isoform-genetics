@@ -24,51 +24,72 @@ set_theme!(;
         )
     )
 
-@time gencode = CSV.read(joinpath(@__DIR__, "../results/long-read/gffcmp.filtered.gencode.gtf.gz"), DataFrame,
-    delim = "\t", skipto = 4, header = ["seqnames", "source", "feature", "start", 
-    "end", "score", "strand", "phase", "info"]) # hg38 coordinates
-gencode.seqnames = replace.(gencode.seqnames, "chr" => "")
-for col in ["transcript_id", "gene_id", "gene_name", "cmp_ref"]
-    storage = Vector(undef, size(gencode, 1))
-    for (n, m) in enumerate(match.(Regex("$(col) \"(.*?)\";"), gencode.info))
-        if isnothing(m)
-            storage[n] = missing
-        else
-            storage[n] = getindex(m.captures, 1)
-        end
-    end
-    gencode[:, col] = storage
-end
-for col in ["num_samples"]
-    storage = Vector(undef, size(gencode, 1))
-    for (n, m) in enumerate(match.(Regex("$(col) (.*?);"), gencode.info))
-        if isnothing(m)
-            storage[n] = missing
-        else
-            storage[n] = getindex(m.captures, 1)
-        end
-    end
-    gencode[:, col] = storage
-end
-for col in ["cmp_ref_gene"]
-    storage = Vector(undef, size(gencode, 1))
-    for (n, m) in enumerate(match.(Regex("$(col) \"(.*?)\""), gencode.info))
-        if isnothing(m)
-            storage[n] = missing
-        else
-            storage[n] = getindex(m.captures, 1)
-        end
-    end
-    gencode[:, col] = storage
-end
-# gencode.cmp_ref_gene = [getindex(i, 1) for i in split.(gencode.cmp_ref_gene, ".")]
-# gencode.cmp_ref = [getindex(i, 1) for i in split.(gencode.cmp_ref, ".")]
+@time gencode = CSV.read(joinpath(@__DIR__, "../results/long-read/gencode.v40.XRN2.gtf"), DataFrame)
 
-gene_id = gencode.cmp_ref_gene[findfirst(isequal("XRN2"), gencode.gene_name)]
-xrn2 = gencode[findall(isequal(gene_id), gencode.cmp_ref_gene), :]
-xrn2 = gencode[findall(in(xrn2.transcript_id), gencode.transcript_id), :]
+begin
+    @time gtf = CSV.read(joinpath(@__DIR__, "../results/long-read/gffcmp.filtered.gencode.gtf.gz"), DataFrame,
+        delim = "\t", skipto = 4, header = ["seqnames", "source", "feature", "start", 
+        "end", "score", "strand", "phase", "info"]) # hg38 coordinates
+    gtf.seqnames = replace.(gtf.seqnames, "chr" => "")
+    for col in ["transcript_id", "gene_id", "gene_name", "cmp_ref"]
+        storage = Vector(undef, size(gtf, 1))
+        for (n, m) in enumerate(match.(Regex("$(col) \"(.*?)\";"), gtf.info))
+            if isnothing(m)
+                storage[n] = missing
+            else
+                storage[n] = getindex(m.captures, 1)
+            end
+        end
+        gtf[:, col] = storage
+    end
+    for col in ["num_samples"]
+        storage = Vector(undef, size(gtf, 1))
+        for (n, m) in enumerate(match.(Regex("$(col) (.*?);"), gtf.info))
+            if isnothing(m)
+                storage[n] = missing
+            else
+                storage[n] = getindex(m.captures, 1)
+            end
+        end
+        gtf[:, col] = storage
+    end
+    for col in ["cmp_ref_gene"]
+        storage = Vector(undef, size(gtf, 1))
+        for (n, m) in enumerate(match.(Regex("$(col) \"(.*?)\""), gtf.info))
+            if isnothing(m)
+                storage[n] = missing
+            else
+                storage[n] = getindex(m.captures, 1)
+            end
+        end
+        gtf[:, col] = storage
+    end
+    # gtf.cmp_ref_gene = [getindex(i, 1) for i in split.(gtf.cmp_ref_gene, ".")]
+    # gtf.cmp_ref = [getindex(i, 1) for i in split.(gtf.cmp_ref, ".")]
+end
+
+gene_id = gtf.cmp_ref_gene[findfirst(isequal("XRN2"), gtf.gene_name)]
+xrn2 = gtf[findall(isequal(gene_id), gtf.cmp_ref_gene), :]
+xrn2 = gtf[findall(in(xrn2.transcript_id), gtf.transcript_id), :]
 xrn2.gene_name .= "XRN2"
-xrn2[findall(isequal("TCONS_00530677"), xrn2.transcript_id), :]
+
+filter(row -> row.feature == "exon", gencode)
+xrn2[findall(isequal("TCONS_00525094"), xrn2.transcript_id), :] # gencode transcript
+xrn2[findall(isequal("TCONS_00530677"), xrn2.transcript_id), :] # isoform of interest
+
+storage = xrn2[findall(isequal("TCONS_00530677"), xrn2.transcript_id), :]
+filter!(row -> row.feature == "exon", storage)
+storage2 = xrn2[findall(isequal("TCONS_00525094"), xrn2.transcript_id), :]
+filter!(row -> row.feature == "exon", storage2)
+for i in 1:nrow(storage)
+    ind = findfirst(isequal(storage.start[i]), storage2.start)
+    if storage.end[i] == storage2.end[ind]
+        println("exon $i has a match")
+    else
+        println("exon $i does not have a match")
+    end
+end
+
 nsamples = Int[]
 for isoform in unique(xrn2.transcript_id)
     push!(nsamples, parse(Int, xrn2[findfirst(isequal(isoform), xrn2.transcript_id), :num_samples]))
@@ -82,14 +103,24 @@ end
     f = Figure(resolution = (306, 792))
     ax = Axis(f[1, 1])
     rs, chr, range1, range2 = GM.plotisoforms!(ax, "XRN2", xrn2; height = 0.1,
-        orderby = ["TCONS_00530677"],
-        highlight = (unique(xrn2.transcript_id), cs))
+        orderby = ["TCONS_00530677", "TCONS_00525094"],
+        highlight = (unique(xrn2.transcript_id), cs), text = :left)
     GM.labelgenome(f[1, 1, Bottom()], chr, range1, range2)
     Legend(f[1, 1], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:4], string.(unique(nsamples)),
         tellwidth = false, tellheight = false, rowgap = 0, halign = :left, valign = :bottom,
         framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
     rowsize!(f.layout, 1, rs)
     resize_to_layout!(f)
+    Label(f[1, 1, Top()], "XRN2 isoforms from long-read sequencing", textsize = 8)
+    m = length(unique(xrn2.transcript_id))
+    ax2 = Axis(f[1, 1])
+    ylims!(ax2, 0.875 - (m - 1) * 0.125, 1.05)
+    ax2.yticks = ([0.95 - (j - 1) * 0.125 for j in 1:m], [["← Isoform of interest", "← In GENCODE"]; fill("", m - 2)])
+    hidexdecorations!(ax2)
+    hideydecorations!(ax2, ticklabels = false)
+    hidespines!(ax2)
+    ax2.yticklabelsize = 4
+    ax2.yaxisposition = :right
     save("figs/$(gene_id)-long-read.png", f, px_per_unit = 4)
 end
 
