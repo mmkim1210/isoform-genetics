@@ -103,7 +103,8 @@ end
     f = Figure(resolution = (306, 792))
     ax = Axis(f[1, 1])
     rs, chr, range1, range2 = GM.plotisoforms!(ax, "XRN2", xrn2; height = 0.1,
-        orderby = ["TCONS_00530677", "TCONS_00525094"],
+        orderby = ["TCONS_00530677", "TCONS_00525094", "TCONS_00530678", "TCONS_00530699", "TCONS_00530705",
+            "TCONS_00530665", "TCONS_00530679", "TCONS_00530701", "TCONS_00530706"],
         highlight = (unique(xrn2.transcript_id), cs), text = :left)
     GM.labelgenome(f[1, 1, Bottom()], chr, range1, range2)
     Legend(f[1, 1], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:4], string.(unique(nsamples)),
@@ -115,7 +116,7 @@ end
     m = length(unique(xrn2.transcript_id))
     ax2 = Axis(f[1, 1])
     ylims!(ax2, 0.875 - (m - 1) * 0.125, 1.05)
-    ax2.yticks = ([0.95 - (j - 1) * 0.125 for j in 1:m], [["← Isoform of interest", "← In GENCODE"]; fill("", m - 2)])
+    ax2.yticks = ([0.95 - (j - 1) * 0.125 for j in 1:m], [["← Isoform of interest", "← In GENCODE v40"]; fill("", m - 2)])
     hidexdecorations!(ax2)
     hideydecorations!(ax2, ticklabels = false)
     hidespines!(ax2)
