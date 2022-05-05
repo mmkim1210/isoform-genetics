@@ -312,7 +312,6 @@ begin
     rs = GM.plotgenes!(axs3[end], gene.chr, gene.start - 0.5e6, gene.stop + 0.5e6, gencode; height = 0.1)
     rowsize!(g2, n + 2, rs)
     GM.labelgenome(g2[n + 2, 1, Bottom()], gene.chr, gene.start - 0.5e6, gene.stop + 0.5e6)
-    GM.labelgenome(g2[n + 2, 1, Bottom()], gene.chr, gene.start - 0.5e6, gene.stop + 0.5e6)
     Colorbar(g2[1:(n + 1), 2], limits = (0, 1), ticks = 0:1:1, height = 20,
         colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
