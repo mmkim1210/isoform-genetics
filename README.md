@@ -1,8 +1,9 @@
 # isoform-genetics
 
-This repository contains code and instructions for heritability and genetic correlation analyses, using the [MultiResponseVarianceComponentModels.jl](https://github.com/Hua-Zhou/MultiResponseVarianceComponentModels.jl) <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia </a>package and applying it to the PsychENCODE brain expression data. For more details, please take a look at the associated paper [Kim et al. 2022](#references). All analyses herein were conducted solely using <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia</a>. 
+This repository contains code and instructions for heritability and genetic correlation analyses, using the [MultiResponseVarianceComponentModels.jl](https://github.com/Hua-Zhou/MultiResponseVarianceComponentModels.jl) <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia </a>package and applying it to the [PsychENCODE brain gene and isoform expression data](http://resource.psychencode.org/). There is a great number of primary literature, review papers, and educational materials that explain in broad strokes the heuristics of heritability and genetic correlation analyses. If you are interested more in technical details with clarity of presentation and mathematical notation, please take a look at the Methods section of the associated paper [Kim et al. 2022](#references). All analyses herein were conducted solely using <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia</a>. If you have any questions, also let me know via my email minsookim@mednet.ucla.edu.
 
-## Getting started 
+## Getting started
+[To install necessary packages and activate a separate environment](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project), open <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia</a> within the directory and type:
 ```julia
 julia> ]
 (@v1.9) pkg> activate .
