@@ -48,7 +48,7 @@ qsub ./submit.sh
 ```
 
 ## Figures
-Once the results are parsed with `src/parse.jl`, **Figures 1-5** in [Kim et al. 2022](#references) can be reproduced by running `./src/fig{1,2,3,4,5}.jl`, respectively. Then minor edits can be made using `Illustrator` to finalize the figures as follows.
+Once the results are parsed with `./src/parse.jl`, **Figures 1-5** in [Kim et al. 2022](#references) can be reproduced by running `./src/fig{1,2,3,4,5}.jl`, respectively. Then minor edits can be made using `Illustrator` to finalize the figures as follows.
 
 **Figure 1:**
 <p align="center"><img width="100%" style="border-radius: 5px;" src="assets/fig1.png"></p>
