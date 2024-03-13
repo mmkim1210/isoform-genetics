@@ -13,7 +13,6 @@ MultiResponseVarianceComponentModels = "95bd6349-d788-4b5f-978d-e543c2eb4d7d"
 MultivariateStats = "6f286f6a-111f-5878-ab1e-185364afe411"
 RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
 SnpArrays = "4e780e97-f5bf-4111-9dc4-b70aaf691b06"
-VCSEL = "684d1ed6-5d62-11e9-0c0b-878d753c12b1"
 
 [extras]
 CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"

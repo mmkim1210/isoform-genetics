@@ -7,13 +7,9 @@ mul = CSV.read("results/multivariate.tsv", DataFrame)
 df = combine(groupby(mul, :gene_name), nrow => :count)
 sort!(df, order(:count, rev = true))
 df = df[df.count .>= 21, :]
-findfirst(isequal("FAM200B"), df.gene_name) # KLHL24, SNX19, PPP2R3C, FIGNL1, PHLDB1, MRPL43
+findfirst(isequal("FAM200B"), df.gene_name) # potential candidates: KLHL24, SNX19, PPP2R3C, FIGNL1, PHLDB1, MRPL43
 
-# risk = CSV.read("data/risk_genes_brain.txt", DataFrame)
-# unique(risk)
-# intersect(unique(risk.genes), df.gene_name)
-
-gene = Gene("KLHL24", gencode, expr, expri, cov, 1e6, geno, "cis")
+gene = Gene("KLHL24", gencode, expr, expri, covariates, 1e6, geno, "cis")
 qtls, mega = runqtl(gene)
 df = mul[mul.gene_name .== "KLHL24", :]
 isoforms = unique(df.id)
@@ -52,7 +48,7 @@ end
 Σ̂p ./= maximum(vec(Σ̂p))
 
 begin
-    f = Figure(resolution = (460, 460))
+    f = Figure(size = (460, 460))
     g1 = f[1, 1:2] = GridLayout()
     g2 = f[2, 1] = GridLayout()
     g3 = f[2, 2] = GridLayout()
@@ -83,22 +79,25 @@ begin
         fill(0.875 - (d - 0.75) * 0.125, length(snps)), fillto = 0.875 - d * 0.125,
         color = "#389826")
     hidedecorations!(axs[2])
-    Label(gs[1][1, 2, Top()], "1. Define cis- and trans-SNPs", textsize = 8)
+    Label(gs[1][1, 2, Top()], rich("1. Define ", rich("cis", font = :italic), "- and ", rich("trans", font = :italic), "-SNPs"), fontsize = 8)
+    Label(gs[1][1, 2, Left()], "SNPs    Isoforms", fontsize = 6, rotation = π / 2)
     [hidespines!(axs[i]) for i in [1, 3]]
     [hidedecorations!(axs[i]) for i in [1, 3]]
     @info "Plotting variance components model"
-    GM.plotrg!(axs[5], Σ̂p, "Iso" .* string.(1:d), diag = true)
-    GM.plotrg!(axs[6], Σ̂[1], "Iso" .* string.(1:d), diag = true)
-    GM.plotrg!(axs[7], Σ̂[2], "Iso" .* string.(1:d), diag = true)
-    GM.plotrg!(axs[8], Σ̂[3], "Iso" .* string.(1:d), diag = true)
+    GM.plotrg!(axs[5], Σ̂p, diagonal = true, circle = false)
+    GM.plotrg!(axs[6], Σ̂[1], diagonal = true, circle = false)
+    GM.plotrg!(axs[7], Σ̂[2], diagonal = true, circle = false)
+    GM.plotrg!(axs[8], Σ̂[3], diagonal = true, circle = false)
+    [xlims!(axs[i], 0, d) for i in 5:8]
+    [ylims!(axs[i], -d, 0) for i in 5:8]
     [hidedecorations!(axs[i]) for i in 5:8]
-    Label(gs[2][2, 1, Left()], "Isoforms", textsize = 6, rotation = π / 2)
-    [Label(gs[2][2, i, Bottom()], "Isoforms", textsize = 6) for i in 1:4]
-    Label(gs[2][2, 1, Top()], "Phenotypic covariance", textsize = 6)
-    Label(gs[2][2, 2, Top()], "Cis-genetic covariance", textsize = 6)
-    Label(gs[2][2, 3, Top()], "Trans-genetic covariance", textsize = 6)
-    Label(gs[2][2, 4, Top()], "Residual covariance", textsize = 6)
-    Label(gs[2][1, 1:4, Top()], "2. Fit multivariate variance components model", textsize = 8)
+    Label(gs[2][2, 1, Left()], "Isoforms", fontsize = 6, rotation = π / 2)
+    [Label(gs[2][2, i, Bottom()], "Isoforms", fontsize = 6) for i in 1:4]
+    Label(gs[2][2, 1, Top()], "Phenotypic covariance", fontsize = 6)
+    Label(gs[2][2, 2, Top()], rich(rich("Cis", font = :italic), "-genetic covariance"), fontsize = 6)
+    Label(gs[2][2, 3, Top()], rich(rich("Trans", font = :italic), "-genetic covariance"), fontsize = 6)
+    Label(gs[2][2, 4, Top()], "Residual covariance", fontsize = 6)
+    Label(gs[2][1, 1:4, Top()], "2. Fit multivariate variance components model", fontsize = 8)
     rowgap!(g2, 3)
     colgap!(g2, 12.5)
     rowsize!(gs[2], 2, Aspect(4, 1))
@@ -108,7 +107,7 @@ begin
     hidespines!(axs[9])
     hidedecorations!(axs[9])
     @info "Plotting eQTL analysis"
-    Label(gs[3][1, 1, Top()], "3. Run cis-eQTL analysis", textsize = 8)
+    Label(gs[3][1, 1, Top()], rich("Run ", rich("cis", font = :italic), "-eQTL analysis"), fontsize = 8)
     rowsize!(gs[3], 1, 0.1)
     rowgap!(gs[3], 1, 3)
     hidespines!(axs[10])
@@ -131,27 +130,27 @@ begin
     cmax = ceil(max(abs.(extrema(z))...)) * 1.25
     heatmap!(axs[11], x, y, z, colorrange = (-cmax, cmax), colormap = :RdBu_11)
     rowsize!(gs[3], 2, 52.5)
-    Label(gs[3][2, 1, Top()], "SNP effects", textsize = 6)
-    Label(gs[3][2, 1, Left()], "Isoforms", textsize = 6, rotation = π / 2)
+    Label(gs[3][2, 1, Top()], "SNP effects", fontsize = 6)
+    Label(gs[3][2, 1, Left()], "Isoforms", fontsize = 6, rotation = π / 2)
+    # xlims!(axs[11], 0.5 - step(x) / 2, 9.5 + step(x) / 2)
     hidedecorations!(axs[11])
     LD = cor(gene.snparray[:, findall(x -> range1 - 1e5 < x < range2 + 1e5, gene.snpinfo.position)])
     LD .= LD.^2
-    GM.plotld!(axs[12], LD; color = "green")
+    GM.plotld!(axs[12], LD; colormap = cgrad(:Greens_9, 9, categorical = true))
     rowsize!(g3, 3, Aspect(1, 0.5))
     rowgap!(g3, 2, 0)
     ylims!(axs[12], 0, 5)
     xlims!(axs[12], 0, 10)
-    hidespines!(axs[12], :t)
+    hidespines!(axs[12])
+    hidedecorations!(axs[12])
     hidespines!(axs[13])
     hidedecorations!(axs[13])
     rowgap!(f.layout, 10)
     colgap!(f.layout, 10)
     colsize!(f.layout, 1, 250)
-    # save("figure1.svg", f, pt_per_unit = 1)
-    save("figure1.pdf", f, pt_per_unit = 1)
+    save("figures/figure1.pdf", f, pt_per_unit = 1)
 end
 
 for plink in ["bed", "bim", "fam"]
     rm("data/$(gene.gene_name)-cis.$(plink)")
-    rm("data/$(gene.gene_name)-trans.$(plink)")
 end

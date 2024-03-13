@@ -2,9 +2,8 @@ using CSV, DataFrames, CairoMakie, ColorSchemes
 using SnpArrays, GLM, Arrow, Distributions
 using GeneticsMakie, MultiResponseVarianceComponentModels
 using LinearAlgebra, Statistics
+
 const GM = GeneticsMakie
-const MRVC = MultiResponseVarianceComponentModel
-const MRVCs = MultiResponseVarianceComponentModels
 
 CairoMakie.activate!(type = "png")
 set_theme!(;
@@ -136,10 +135,10 @@ end
 @assert (93_293, 861) == size(expri)
 
 @info "Loading covariates for expression"
-@time cov = CSV.read(joinpath(@__DIR__, "../data/expression/PsychENCODE-EUR-covariates.tsv"), delim = "\t", DataFrame)
-cov = cov[Not([257, 439, 665, 757, 831]), :]
-cov = Matrix(cov)
-@assert (855, 45) == size(cov)
+@time covariates = CSV.read(joinpath(@__DIR__, "../data/expression/PsychENCODE-EUR-covariates.tsv"), delim = "\t", DataFrame)
+covariates = covariates[Not([257, 439, 665, 757, 831]), :]
+covariates = Matrix(covariates)
+@assert (855, 45) == size(covariates)
 
 @info "Loading GENCODE annotation"
 if !isfile(joinpath(@__DIR__, "../data/gencode.v19.annotation.parsed.gtf.arrow"))

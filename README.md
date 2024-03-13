@@ -6,7 +6,7 @@ This repository contains code and instructions for heritability and genetic corr
 [To install necessary packages and activate a separate environment](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project), open <a href="https://julialang.org"><img src="https://julialang.org/assets/infra/julia.ico" width="10em"> Julia</a> within the directory and type:
 ```julia
 julia> ]
-(@v1.7) pkg> activate .
+(@v1.10) pkg> activate .
 (isoform-genetics) pkg> instantiate
 ```
 ## Required data
