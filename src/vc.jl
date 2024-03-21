@@ -1,16 +1,18 @@
 idx = parse(Int, ARGS[1])
 include(joinpath(@__DIR__, "isoform-genetics.jl"))
 
+const MRVCModels = MultiResponseVarianceComponentModels
+
 function fit_uni(Y, X, V)
-    model = MRVC(Y, X, V)
-    MRVCs.fit!(model, maxiter = 3000, reml = true)
-    h², h²se = calculate_h2(model)
-    model_mle = MRVC(Y, X, V)
-    MRVCs.fit!(model_mle, maxiter = 3000)
-    h²_mle, h²se_mle = calculate_h2(model_mle)
-    model0 = MRVC(Y, X, V[end])
-    MRVCs.fit!(model0, maxiter = 3000)
-    p = calculate_p(model_mle, model0)
+    model = MRVCModel(Y, X, V)
+    MRVCModels.fit!(model, maxiter = 3000, reml = true)
+    h², h²se = h2(model)
+    model_mle = MRVCModel(Y, X, V)
+    MRVCModels.fit!(model_mle, maxiter = 3000)
+    h²_mle, h²se_mle = h2(model_mle)
+    model0 = MRVCModel(Y, X, V[end])
+    MRVCModels.fit!(model0, maxiter = 3000)
+    p = lrt(model_mle, model0)
     vcat(
         [model.Σ[k][1] for k in 1:3], 
         [sqrt(model.Σcov[k, k]) for k in 1:3],
@@ -131,10 +133,10 @@ function runvc_bi(gene::Gene)
     for i in 1:d
         for j in (i + 1):d
             @info "Fitting pair ($i, $j)"
-            model = MRVC(gene.Yi[:, [gene.heritable_isoforms[i], gene.heritable_isoforms[j]]], gene.X, V)
-            MRVCs.fit!(model, maxiter = 3000, reml = true) 
-            h², h²se = calculate_h2(model)
-            r₉, r₉se = calculate_rg(model)
+            model = MRVCModel(gene.Yi[:, [gene.heritable_isoforms[i], gene.heritable_isoforms[j]]], gene.X, V)
+            MRVCModels.fit!(model, maxiter = 3000, reml = true) 
+            h², h²se = h2(model)
+            r₉, r₉se = rg(model)
             r₉_parsed = [r₉[k][1, 2] for k in 1:3]
             r₉se_parsed = [r₉se[k][1, 2] for k in 1:3]
             zs = (r₉_parsed ./ r₉se_parsed).^2
@@ -183,12 +185,12 @@ function runvc_mul(gene::Gene)
     V = [gene.grmcis, gene.grmtrans, Matrix{Float64}(I, size(gene.grmcis))]
     d = length(gene.heritable_isoforms)
     @info "Fitting multivariate model for $d isoforms"
-    model = MRVC(gene.Yi[:, gene.heritable_isoforms], gene.X, V)
-    MRVCs.fit!(model, maxiter = 3000, reml = true, verbose = true)
-    h², h²se = calculate_h2(model)
-    r₉, r₉se = calculate_rg(model)
-    h2rg = reduce(hcat, [MRVCs.vech(r₉[i]) for i in 1:3])
-    h2rgse = reduce(hcat, [MRVCs.vech(r₉se[i]) for i in 1:3])
+    model = MRVCModel(gene.Yi[:, gene.heritable_isoforms], gene.X, V)
+    MRVCModels.fit!(model, maxiter = 3000, reml = true, verbose = true)
+    h², h²se = h2(model)
+    r₉, r₉se = rg(model)
+    h2rg = reduce(hcat, [MRVCModels.vech(r₉[i]) for i in 1:3])
+    h2rgse = reduce(hcat, [MRVCModels.vech(r₉se[i]) for i in 1:3])
     for i in 1:3
         h2rg[ind, i] = h²[i, :]
         h2rgse[ind, i] = h²se[i, :]
@@ -197,7 +199,7 @@ function runvc_mul(gene::Gene)
     ps = ccdf.(Chisq(1), zs)
     ps[ind, :] .= NaN
     result = hcat(
-        reduce(hcat, [MRVCs.vech(model.Σ[i]) for i in 1:3]),
+        reduce(hcat, [MRVCModels.vech(model.Σ[i]) for i in 1:3]),
         reduce(hcat, [diag(model.Σcov)[((i - 1) * np + 1):(i * np)] for i in 1:3]),
         h2rg, h2rgse, ps
         )
@@ -209,7 +211,7 @@ function runvc_mul(gene::Gene)
         "p_cis", "p_trans", "p_res"
         ])
     ids = gene.expressed_isoforms[gene.heritable_isoforms]
-    txind = MRVCs.vech([[j, i] for i in 1:d, j in 1:d])
+    txind = MRVCModels.vech([[j, i] for i in 1:d, j in 1:d])
     ids = reduce(vcat, [permutedims(ids[txind[i]]) for i in 1:length(txind)])    
     result.gene_name .= gene.gene_name
     result.gene_id .= gene.gene_id
