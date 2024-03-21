@@ -31,7 +31,7 @@ for gene_name in genes_to_focus
 end
 
 begin
-    f = Figure(resolution = (530, 792))
+    f = Figure(size = (530, 792))
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
     ga = g1[1, 1] = GridLayout()
@@ -64,10 +64,10 @@ begin
         for j in 1:(n + 1)
             if j == 1
                 GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][1])
-                Label(gs[i][j, 1, Top()], "$(genes[i].gene_id)", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+                Label(gs[i][j, 1, Top()], "$(genes[i].gene_id)", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
             else
                 GM.plotlocus!(axs[j], genes[i].chr, range1, range2, qtls_all[i][ind[j - 1] + 1]; ld = kgp)
-                Label(gs[i][j, 1, Top()], "$(isoforms_to_focus[i][j - 1])", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+                Label(gs[i][j, 1, Top()], "$(isoforms_to_focus[i][j - 1])", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
             end
             rowsize!(gs[i], j, 30)
         end
@@ -75,7 +75,7 @@ begin
         ind = findall(in(gwas_to_focus[i]), collect(keys(GeneticsMakie.gwas)))
         for j in 1:m
             GM.plotlocus!(axs[j + n + 1], genes[i].chr, range1, range2, dfs[ind[j]]; ld = kgp)
-            Label(gs[i][j + n + 1, 1, Top()], "$(titles[j])", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+            Label(gs[i][j + n + 1, 1, Top()], "$(titles[j])", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
             rowsize!(gs[i], j + n + 1, 30)
         end
         @info "Plotting genes"
@@ -98,16 +98,15 @@ begin
             lines!(axs[j], [range1, range2], fill(-log(10, 5e-8), 2), color = (:purple, 0.5), linewidth = 0.5)
         end
         Colorbar(gs[i][1:(n + m + 1), 2], limits = (0, 1), ticks = 0:1:1, height = 20,
-            colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
+            colormap = [:gray60, :red2], label = "LD", ticksize = 0, tickwidth = 0,
             tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
             labelsize = 6, width = 5, spinewidth = 0.5)
-        Label(gs[i][1:(n + m + 1), 1, Left()], text = "-log[p]", textsize = 6, rotation = π / 2)
+        Label(gs[i][1:(n + m + 1), 1, Left()], text = rich("-log", subscript("10"), rich("P", font = :italic)), fontsize = 6, rotation = π / 2)
         rowgap!(gs[i], 5)
         colgap!(gs[i], 5)
     end
     rowgap!(f.layout, 2)
     colgap!(f.layout, 0)
     # resize_to_layout!(f)
-    # save("figure4.svg", f, pt_per_unit = 1)
-    save("figure4.pdf", f, pt_per_unit = 1)
+    save("figures/figure4.pdf", f, pt_per_unit = 1)
 end

@@ -142,7 +142,7 @@ begin
     hidespines!(ax2)
     ax2.yticklabelsize = 4
     ax2.yaxisposition = :right
-    Legend(g1[1, 1:4], [LineElement(color = "#CB3C33", linestyle = nothing), 
+    Legend(g1[1, 2:4], [LineElement(color = "#CB3C33", linestyle = nothing), 
         LineElement(color = "#4062D8", linestyle = nothing),
         LineElement(color = "gray60", linestyle = nothing)],
         ["heritable", "non-heritable, brain-expressed", "non-brain-expressed"],
@@ -211,6 +211,9 @@ begin
     GM.plotrg!(axs2[2, 1], rg_mul[1], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
     GM.plotrg!(axs2[2, 2], rg_mul[2], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
     GM.plotrg!(axs2[2, 3], rg_mul[3], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    [xlims!(axs2[2, i], 0, n) for i in 1:3]
+    [ylims!(axs2[2, i], -n, 0) for i in 1:3]
+    [hidedecorations!(axs2[2, i]) for i in 1:3]
     [Label(g1[5, j, Right()], "Pairwise bivariate", fontsize = 6, rotation = -π / 2) for j in 1:3]
     [Label(g1[5, j, Bottom()], "Multivariate", fontsize = 6) for j in 1:3]
     for i in 1:3
@@ -226,8 +229,8 @@ begin
     rowsize!(g1, 5, Aspect(3, 1))
     Label(g1[4, 1:4, TopLeft()], "c", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     Label(g1[4, 1:4, Top()], "Comparison of genetic correlation estimates", fontsize = 8)
-    Label(g1[4, 1, Bottom()], "Cis-SNP effects", fontsize = 6)
-    Label(g1[4, 2, Bottom()], "Trans-SNP effects", fontsize = 6)
+    Label(g1[4, 1, Bottom()], rich(rich("Cis", font = :italic), "-SNP effects"), fontsize = 6)
+    Label(g1[4, 2, Bottom()], rich(rich("Trans", font = :italic), "-SNP effects"), fontsize = 6)
     Label(g1[4, 3, Bottom()], "Residual effects", fontsize = 6)
     rowsize!(g1, 4, 0.1)
     [hidespines!(axs2[1, j]) for j in 1:3]
@@ -316,7 +319,7 @@ begin
         colormap = [:gray60, :red2], label = "LD", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5)
-    Label(g2[1:(n + 1), 0], text = "-log[p]", fontsize = 6, rotation = pi / 2)
+    Label(g2[1:(n + 1), 0], text = rich("-log", subscript("10"), rich("P", font = :italic)), fontsize = 6, rotation = pi / 2)
     for i in 1:(n + 2)
         vlines!(axs3[i], gene.start, color = (:gold, 0.5), linewidth = 0.5)
         vlines!(axs3[i], gene.stop, color = (:gold, 0.5), linewidth = 0.5)
