@@ -155,10 +155,12 @@ for plink in ["bed", "bim", "fam"]
     rm("data/$(gene.gene_name)-cis.$(plink)")
 end
 
-# f = Figure(size = (460, 460))
-# ax = Axis(f[1, 1])
-# GM.plotrg!(ax, Σ̂[3], diagonal = true, circle = false)
-# xlims!(ax, 0, d)
-# ylims!(ax, -d, 0)
-# hidedecorations!(ax)
-# save("figures/example3.png", f, pt_per_unit = 1)
+begin
+    f = Figure(size = (460, 460))
+    ax = Axis(f[1, 1])
+    GM.plotrg!(ax, Σ̂[3], diagonal = true, circle = false)
+    xlims!(ax, 0, d)
+    ylims!(ax, -d, 0)
+    hidedecorations!(ax)
+    save("figures/figure1-heatmap4.png", f, pt_per_unit = 1)
+end

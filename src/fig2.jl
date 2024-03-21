@@ -277,10 +277,10 @@ let
     [hidedecorations!(axs[2, j], ticks = false, ticklabels = false) for j in 1:3]
     Label(f[4, 1:3], text = "REML estimates", fontsize = 6)
     Label(f[2:3, 0], text = "ML estimates", fontsize = 6, rotation = pi / 2, tellheight = false)
-    Box(f[2, 5], color = :gray90)
-    Label(f[2, 5], "Genes", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
-    Box(f[3, 5], color = :gray90)
-    Label(f[3, 5], "Isoforms", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
+    Box(f[2, 4], color = :gray90)
+    Label(f[2, 4], "Genes", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
+    Box(f[3, 4], color = :gray90)
+    Label(f[3, 4], "Isoforms", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
     colgap!(f.layout, 5)
     rowgap!(f.layout, 5)
     colgap!(f.layout, 4, 2)
@@ -292,7 +292,7 @@ end
 let
     @info "Comparing ML vs REML estimates"
     @info "Plotting genes"
-    f = Figure(resolution = (306, 460))
+    f = Figure(size = (306, 460))
     axs_title = [Axis(f[1, j]) for j in 1:3]
     [hidespines!(axs_title[j]) for j in 1:3]
     [hidedecorations!(axs_title[j]) for j in 1:3]
@@ -327,16 +327,16 @@ let
     [hidedecorations!(axs[2, j], ticks = false, ticklabels = false) for j in 1:3]
     Label(f[4, 1:3], text = "REML estimates", fontsize = 6)
     Label(f[2:3, 0], text = "ML estimates", fontsize = 6, rotation = pi / 2, tellheight = false)
-    Box(f[2, 5], color = :gray90)
-    Label(f[2, 5], "Genes", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
-    Box(f[3, 5], color = :gray90)
-    Label(f[3, 5], "Isoforms", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
+    Box(f[2, 4], color = :gray90)
+    Label(f[2, 4], "Genes", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
+    Box(f[3, 4], color = :gray90)
+    Label(f[3, 4], "Isoforms", tellheight = false, fontsize = 6, rotation = -π / 2, padding = (0, 0, 3, 3))
     colgap!(f.layout, 5)
     rowgap!(f.layout, 5)
     colgap!(f.layout, 4, 2)
     rowgap!(f.layout, 1, 1)
     resize_to_layout!(f)
-    save("remlvsmle_h2.png", f, px_per_unit = 4)
+    save("figures/remlvsmle_h2.png", f, px_per_unit = 4)
 end
 
 let
@@ -354,7 +354,7 @@ let
         resultsg_single[i, :] .= Array(resultsg[findfirst(isequal(gene), resultsg.gene_id), cols])
         resultsi_single[i, :] .= Array(resultsi[findfirst(isequal(gene), resultsi.gene_id), cols])
     end
-    f = Figure(resolution = (306, 460))
+    f = Figure(size = (306, 460))
     axs_title = [Axis(f[1, j]) for j in 1:3]
     [hidespines!(axs_title[j]) for j in 1:3]
     [hidedecorations!(axs_title[j]) for j in 1:3]
@@ -376,64 +376,64 @@ let
     colgap!(f.layout, 5)
     rowgap!(f.layout, 1)
     resize_to_layout!(f)
-    save("single_isoform_genes.png", f, px_per_unit = 4)
+    save("figures/single_isoform_genes.png", f, px_per_unit = 4)
 end
 
-let
-    @info "Comparison of standard error of h² estimates between univariate and multivariate models"
-    f = Figure(resolution = (306, 460))
-    axs_title = [Axis(f[1, j]) for j in 1:3]
-    [hidespines!(axs_title[j]) for j in 1:3]
-    [hidedecorations!(axs_title[j]) for j in 1:3]
-    Label(f[1, 1:3, Top()], "Comparison of standard error of heritability estimates", fontsize = 8)
-    rowsize!(f.layout, 1, 0.1)
-    Label(f[1, 1, Bottom()], "Cis-heritability", fontsize = 6)
-    Label(f[1, 2, Bottom()], "Trans-heritability", fontsize = 6)
-    Label(f[1, 3, Bottom()], "Total heritability", fontsize = 6)
-    axs = [Axis(f[2, j]) for j in 1:3]
-    [scatter!(axs[j], df_uni[:, 10 + j], df[:, 10 + j], 
-        color = ("#4062D8", 0.75), markersize = 2) for j in 1:3]
-    [ablines!(axs[j], 0, 1, color = ("#CB3C33", 1), linewidth = 0.5) for j in 1:3]
-    [hidedecorations!(axs[j], ticks = false, ticklabels = false) for j in 1:3]
-    rowsize!(f.layout, 2, Aspect(3, 1))
-    maxs = [maximum(vcat(df[:, 10 + j], df_uni[:, 10 + j])) for j in 1:3]
-    [xlims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
-    [ylims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
-    Label(f[3, 1:3], text = "Univariate model", fontsize = 6)
-    Label(f[2, 0], text = "Multivariate model", fontsize = 6, rotation = pi / 2, tellheight = false)
-    colgap!(f.layout, 5)
-    rowgap!(f.layout, 1)
-    resize_to_layout!(f)
-    save("h2_se_univsmul.png", f, px_per_unit = 4)
-end
+# let
+#     @info "Comparison of standard error of h² estimates between univariate and multivariate models"
+#     f = Figure(size = (306, 460))
+#     axs_title = [Axis(f[1, j]) for j in 1:3]
+#     [hidespines!(axs_title[j]) for j in 1:3]
+#     [hidedecorations!(axs_title[j]) for j in 1:3]
+#     Label(f[1, 1:3, Top()], "Comparison of standard error of heritability estimates", fontsize = 8)
+#     rowsize!(f.layout, 1, 0.1)
+#     Label(f[1, 1, Bottom()], "Cis-heritability", fontsize = 6)
+#     Label(f[1, 2, Bottom()], "Trans-heritability", fontsize = 6)
+#     Label(f[1, 3, Bottom()], "Total heritability", fontsize = 6)
+#     axs = [Axis(f[2, j]) for j in 1:3]
+#     [scatter!(axs[j], df_uni[:, 10 + j], df[:, 10 + j], 
+#         color = ("#4062D8", 0.75), markersize = 2) for j in 1:3]
+#     [ablines!(axs[j], 0, 1, color = ("#CB3C33", 1), linewidth = 0.5) for j in 1:3]
+#     [hidedecorations!(axs[j], ticks = false, ticklabels = false) for j in 1:3]
+#     rowsize!(f.layout, 2, Aspect(3, 1))
+#     maxs = [maximum(vcat(df[:, 10 + j], df_uni[:, 10 + j])) for j in 1:3]
+#     [xlims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
+#     [ylims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
+#     Label(f[3, 1:3], text = "Univariate model", fontsize = 6)
+#     Label(f[2, 0], text = "Multivariate model", fontsize = 6, rotation = pi / 2, tellheight = false)
+#     colgap!(f.layout, 5)
+#     rowgap!(f.layout, 1)
+#     resize_to_layout!(f)
+#     save("figures/h2_se_univsmul.png", f, px_per_unit = 4)
+# end
 
-begin
-    @info "Comparison of standard error of variance components estimates between univariate and multivariate models"
-    f = Figure(resolution = (306, 460))
-    axs_title = [Axis(f[1, j]) for j in 1:3]
-    [hidespines!(axs_title[j]) for j in 1:3]
-    [hidedecorations!(axs_title[j]) for j in 1:3]
-    Label(f[1, 1:3, Top()], "Comparison of standard error of variance components estimates", fontsize = 8)
-    rowsize!(f.layout, 1, 0.1)
-    Label(f[1, 1, Bottom()], "Cis-genetic variance", fontsize = 6)
-    Label(f[1, 2, Bottom()], "Trans-genetic variance", fontsize = 6)
-    Label(f[1, 3, Bottom()], "Residual variance", fontsize = 6)
-    axs = [Axis(f[2, j]) for j in 1:3]
-    [scatter!(axs[j], df_uni[:, 4 + j], df[:, 4 + j], 
-        color = ("#4062D8", 0.75), markersize = 2) for j in 1:3]
-    [ablines!(axs[j], 0, 1, color = ("#CB3C33", 1), linewidth = 0.5) for j in 1:3]
-    [hidedecorations!(axs[j], ticks = false, ticklabels = false) for j in 1:3]
-    rowsize!(f.layout, 2, Aspect(3, 1))
-    maxs = [maximum(vcat(df[:, 4 + j], df_uni[:, 4 + j])) for j in 1:3]
-    [xlims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
-    [ylims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
-    Label(f[3, 1:3], text = "Univariate model", fontsize = 6)
-    Label(f[2, 0], text = "Multivariate model", fontsize = 6, rotation = pi / 2, tellheight = false)
-    colgap!(f.layout, 5)
-    rowgap!(f.layout, 1)
-    resize_to_layout!(f)
-    save("vc_se_univsmul.png", f, px_per_unit = 4)
-end
+# begin
+#     @info "Comparison of standard error of variance components estimates between univariate and multivariate models"
+#     f = Figure(resolution = (306, 460))
+#     axs_title = [Axis(f[1, j]) for j in 1:3]
+#     [hidespines!(axs_title[j]) for j in 1:3]
+#     [hidedecorations!(axs_title[j]) for j in 1:3]
+#     Label(f[1, 1:3, Top()], "Comparison of standard error of variance components estimates", fontsize = 8)
+#     rowsize!(f.layout, 1, 0.1)
+#     Label(f[1, 1, Bottom()], "Cis-genetic variance", fontsize = 6)
+#     Label(f[1, 2, Bottom()], "Trans-genetic variance", fontsize = 6)
+#     Label(f[1, 3, Bottom()], "Residual variance", fontsize = 6)
+#     axs = [Axis(f[2, j]) for j in 1:3]
+#     [scatter!(axs[j], df_uni[:, 4 + j], df[:, 4 + j], 
+#         color = ("#4062D8", 0.75), markersize = 2) for j in 1:3]
+#     [ablines!(axs[j], 0, 1, color = ("#CB3C33", 1), linewidth = 0.5) for j in 1:3]
+#     [hidedecorations!(axs[j], ticks = false, ticklabels = false) for j in 1:3]
+#     rowsize!(f.layout, 2, Aspect(3, 1))
+#     maxs = [maximum(vcat(df[:, 4 + j], df_uni[:, 4 + j])) for j in 1:3]
+#     [xlims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
+#     [ylims!(axs[j], 0, maxs[j] * 6 / 5) for j in 1:3]
+#     Label(f[3, 1:3], text = "Univariate model", fontsize = 6)
+#     Label(f[2, 0], text = "Multivariate model", fontsize = 6, rotation = pi / 2, tellheight = false)
+#     colgap!(f.layout, 5)
+#     rowgap!(f.layout, 1)
+#     resize_to_layout!(f)
+#     save("vc_se_univsmul.png", f, px_per_unit = 4)
+# end
 
 @info "Comparison of standard errors of rg between pairwise bivariate and multivariate models"
 # cis, trans, residual separately for covariance and correlation
@@ -442,7 +442,7 @@ end
 # overlap with venn diagram
 
 @info "Comparison with only cis effects model"
-# For genes and isoforms, h² and rg
+# for genes and isoforms, h² and rg
 
 @info "Polygenicity of cis effects"
 # polygenicity (# of conditionally independent signals) + vcsel + index SNP R²
