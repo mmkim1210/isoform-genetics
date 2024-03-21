@@ -86,7 +86,7 @@ end
 gene_name = "ATP9B"
 @info "Working on $(gene_name)" # RBM23, COA1, FAM153A, WDR27, PCM1, AKAP13, SDHAP1, ZNF638, ZNF615
 window = 1e6
-@time gene = Gene(string.(gene_name), gencode, expr, expri, cov, 1e6, geno, "cis")
+@time gene = Gene(string.(gene_name), gencode, expr, expri, covariates, 1e6, geno, "cis")
 range1 = gene.start - window
 range2 = gene.stop + window
 storage = filter(row -> row.feature == "gene" && row.gene_id == gene.gene_id, uni)
@@ -122,7 +122,7 @@ range2 > GM.GRCh37_totlength[gene.chr] ? range2 = GM.GRCh37_totlength[gene.chr] 
 titles = [GM.gwas[key].title for key in keys(GM.gwas)]
 
 begin
-    f = Figure(resolution = (530, 792))
+    f = Figure(size = (530, 792))
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
     @info "Plotting panel a"
@@ -132,8 +132,8 @@ begin
         highlight = (txid, [fill("#CB3C33", n); fill("#4062D8", length(txid) - n)]))
     rowsize!(g1, 1, rs)
     GM.labelgenome(g1[1, 1:4, Bottom()], gene.chr, range1_iso, range2_iso)
-    Label(g1[1, 1:4, Top()], "$(gene_name) isoforms", textsize = 8)
-    Label(g1[1, 1:4, TopLeft()], "a", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[1, 1:4, Top()], "$(gene_name) isoforms", fontsize = 8)
+    Label(g1[1, 1:4, TopLeft()], "a", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     ax2 = Axis(g1[1, 1:4])
     ylims!(ax2, 0.875 - (m - 1) * 0.125, 1.05)
     ax2.yticks = ([0.95 - (j - 1) * 0.125 for j in 1:m], ["← Iso" .* string.(1:n); fill("", m - n)])
@@ -181,7 +181,7 @@ begin
     ylims!(axs1[3], 0, 0.95)
     hidexdecorations!(axs1[3], ticklabels = false)
     hideydecorations!(axs1[3], ticks = false, ticklabels = false)
-    Label(g1[2, 1:4, Top()], "Comparison of heritability estimates", textsize = 8)
+    Label(g1[2, 1:4, Top()], "Comparison of heritability estimates", fontsize = 8)
     axs1[2].yticks = 0:0.05:0.22
     axs1[2].xticks = (ticks, "Iso" .* string.(1:n))
     # ax3 = Axis(g1[2, 1], title = L"Comparison of $h^2_{SNP}$ estimates", titlesize = 8)
@@ -189,7 +189,7 @@ begin
     axs1[3].xticks = (ticks, "Iso" .* string.(1:n))
     rowsize!(g1, 2, 45)
     rowsize!(g1, 3, 45)
-    Label(g1[2, 1:4, TopLeft()], "b", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[2, 1:4, TopLeft()], "b", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     # colors = cgrad(ColorSchemes.jgreen, 4, categorical = true)
     colors = ["#9658B2", "#389826"]
     Legend(g1[2, 1:4], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:2], ["cis", "trans"],
@@ -208,11 +208,11 @@ begin
             rg_mul_p[3][i, j] = rg_bi_p[3][i, j]
         end
     end
-    GM.plotrg!(axs2[2, 1], rg_mul[1], "Iso" .* string.(1:n), p = rg_mul_p[1])
-    GM.plotrg!(axs2[2, 2], rg_mul[2], "Iso" .* string.(1:n), p = rg_mul_p[2])
-    GM.plotrg!(axs2[2, 3], rg_mul[3], "Iso" .* string.(1:n), p = rg_mul_p[3])
-    [Label(g1[5, j, Right()], "Pairwise bivariate", textsize = 6, rotation = -π / 2) for j in 1:3]
-    [Label(g1[5, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
+    GM.plotrg!(axs2[2, 1], rg_mul[1], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[2, 2], rg_mul[2], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[2, 3], rg_mul[3], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    [Label(g1[5, j, Right()], "Pairwise bivariate", fontsize = 6, rotation = -π / 2) for j in 1:3]
+    [Label(g1[5, j, Bottom()], "Multivariate", fontsize = 6) for j in 1:3]
     for i in 1:3
         axs2[2, i].xaxisposition = :top
         if n >= 7
@@ -224,11 +224,11 @@ begin
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5, tellheight = false)
     rowsize!(g1, 5, Aspect(3, 1))
-    Label(g1[4, 1:4, TopLeft()], "c", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
-    Label(g1[4, 1:4, Top()], "Comparison of genetic correlation estimates", textsize = 8)
-    Label(g1[4, 1, Bottom()], "Cis-SNP effects", textsize = 6)
-    Label(g1[4, 2, Bottom()], "Trans-SNP effects", textsize = 6)
-    Label(g1[4, 3, Bottom()], "Residual effects", textsize = 6)
+    Label(g1[4, 1:4, TopLeft()], "c", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[4, 1:4, Top()], "Comparison of genetic correlation estimates", fontsize = 8)
+    Label(g1[4, 1, Bottom()], "Cis-SNP effects", fontsize = 6)
+    Label(g1[4, 2, Bottom()], "Trans-SNP effects", fontsize = 6)
+    Label(g1[4, 3, Bottom()], "Residual effects", fontsize = 6)
     rowsize!(g1, 4, 0.1)
     [hidespines!(axs2[1, j]) for j in 1:3]
     [hidedecorations!(axs2[1, j]) for j in 1:3]
@@ -245,11 +245,11 @@ begin
             rg_mul_p[3][i, j] = 1
         end
     end
-    GM.plotrg!(axs2[4, 1], rg_mul[1], "Iso" .* string.(1:n), p = rg_mul_p[1])
-    GM.plotrg!(axs2[4, 2], rg_mul[2], "Iso" .* string.(1:n), p = rg_mul_p[2])
-    GM.plotrg!(axs2[4, 3], rg_mul[3], "Iso" .* string.(1:n), p = rg_mul_p[3])
-    [Label(g1[7, j, Right()], "Phenotypic correlation", textsize = 6, rotation = -π / 2) for j in 1:3]
-    [Label(g1[7, j, Bottom()], "Multivariate", textsize = 6) for j in 1:3]
+    GM.plotrg!(axs2[4, 1], rg_mul[1], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[4, 2], rg_mul[2], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[4, 3], rg_mul[3], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    [Label(g1[7, j, Right()], "Phenotypic correlation", fontsize = 6, rotation = -π / 2) for j in 1:3]
+    [Label(g1[7, j, Bottom()], "Multivariate", fontsize = 6) for j in 1:3]
     for i in 1:3
         axs2[4, i].xaxisposition = :top
         if n >= 7
@@ -261,11 +261,11 @@ begin
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5, tellheight = false)
     rowsize!(g1, 7, Aspect(3, 1))
-    Label(g1[6, 1:4, TopLeft()], "d", textsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
-    Label(g1[6, 1:4, Top()], "Comparison with phenotypic correlation", textsize = 8)
-    Label(g1[6, 1, Bottom()], "Cis SNP effects", textsize = 6)
-    Label(g1[6, 2, Bottom()], "Trans SNP effects", textsize = 6)
-    Label(g1[6, 3, Bottom()], "Residual effects", textsize = 6)
+    Label(g1[6, 1:4, TopLeft()], "d", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
+    Label(g1[6, 1:4, Top()], "Comparison with phenotypic correlation", fontsize = 8)
+    Label(g1[6, 1, Bottom()], "Cis SNP effects", fontsize = 6)
+    Label(g1[6, 2, Bottom()], "Trans SNP effects", fontsize = 6)
+    Label(g1[6, 3, Bottom()], "Residual effects", fontsize = 6)
     rowsize!(g1, 6, 0.1)
     [hidespines!(axs2[3, j]) for j in 1:3]
     [hidedecorations!(axs2[3, j]) for j in 1:3]
@@ -290,22 +290,22 @@ begin
         end
         rowsize!(g2, i, 30)
         if i == 1
-            Label(g2[i, 1, Top()], "$(gene_name) (Gene)", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+            Label(g2[i, 1, Top()], "$(gene_name) (Gene)", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
         else
-            Label(g2[i, 1, Top()], "$(gene_name) (Iso$(i - 1))", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+            Label(g2[i, 1, Top()], "$(gene_name) (Iso$(i - 1))", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
         end
     end
     # for i in 1:length(gwas_ind)
     #     if issig(dfs[gwas_ind[i]])
     #         GM.plotlocus!(axs3[i + n + 1], gene.chr, range1, range2, dfs[gwas_ind[i]]; ld = kgp)
     #         if dfs[gwas_ind[i]].BP[findmin(dfs[gwas_ind[i]].P)[2]] < (range1 + range2) / 2
-    #             Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", textsize = 6, halign = :right, padding = (0, 7.5, -5, 0))
+    #             Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", fontsize = 6, halign = :right, padding = (0, 7.5, -5, 0))
     #         else
-    #             Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+    #             Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
     #         end    
     #     else
     #         GM.plotlocus!(axs3[i + n + 1], gene.chr, range1, range2, dfs[gwas_ind[i]])
-    #         Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", textsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
+    #         Label(g2[i + n + 1, 1, Top()], "$(titles[gwas_ind[i]])", fontsize = 6, halign = :left, padding = (7.5, 0, -5, 0))
     #     end
     #     rowsize!(g2, i + n + 1, 30)
     # end
@@ -313,10 +313,10 @@ begin
     rowsize!(g2, n + 2, rs)
     GM.labelgenome(g2[n + 2, 1, Bottom()], gene.chr, gene.start - 0.5e6, gene.stop + 0.5e6)
     Colorbar(g2[1:(n + 1), 2], limits = (0, 1), ticks = 0:1:1, height = 20,
-        colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
+        colormap = [:gray60, :red2], label = "LD", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5)
-    Label(g2[1:(n + 1), 0], text = "-log[p]", textsize = 6, rotation = pi / 2)
+    Label(g2[1:(n + 1), 0], text = "-log[p]", fontsize = 6, rotation = pi / 2)
     for i in 1:(n + 2)
         vlines!(axs3[i], gene.start, color = (:gold, 0.5), linewidth = 0.5)
         vlines!(axs3[i], gene.stop, color = (:gold, 0.5), linewidth = 0.5)
@@ -330,7 +330,7 @@ begin
     #     colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
     #     tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
     #     labelsize = 6, width = 5, spinewidth = 0.5)
-    # Label(g2[1:(length(gwas_ind) + n + 1), 0], text = "-log[p]", textsize = 6, rotation = pi / 2)
+    # Label(g2[1:(length(gwas_ind) + n + 1), 0], text = "-log[p]", fontsize = 6, rotation = pi / 2)
     # for i in 1:(length(gwas_ind) + n + 2)
     #     vlines!(axs3[i], gene.start, color = (:gold, 0.5), linewidth = 0.5)
     #     vlines!(axs3[i], gene.stop, color = (:gold, 0.5), linewidth = 0.5)
@@ -342,7 +342,7 @@ begin
     colgap!(g2, 5)
     colgap!(f.layout, 1, 0)
     resize_to_layout!(f)
-    save("figure3.pdf", f, pt_per_unit = 1)
+    save("figures/figure3.pdf", f, pt_per_unit = 1)
     # save("figure3-$(gene.gene_name).png", f, px_per_unit = 4)
 end
 

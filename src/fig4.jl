@@ -8,7 +8,7 @@ for key in keys(GeneticsMakie.gwas)
 end
 
 @info "Loading 1000 Genomes"
-@time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.eur.maf0.05"))
+@time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.EUR.maf0.05.geno"))
 
 genes_to_focus = ["XRN2", "TBL1XR1", "SYNE1", "SYT1"]
 isoforms_to_focus = [
@@ -24,7 +24,7 @@ qtls_all = []
 for gene_name in genes_to_focus
     @info "Working on $(gene_name)"
     window = 1e6
-    @time gene = Gene(gene_name, gencode, expr, expri, cov, 1e6, geno, "cis")
+    @time gene = Gene(gene_name, gencode, expr, expri, covariates, 1e6, geno, "cis")
     push!(genes, gene)
     @time qtls, _ = runqtl(gene)
     push!(qtls_all, qtls)

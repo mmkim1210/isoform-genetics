@@ -221,7 +221,7 @@ function loadgwas()
         push!(gwas, DataFrame(Arrow.Table(joinpath.("data/gwas/processed/", key * ".tsv.arrow"))))
     end
     @info "Loading 1000 Genomes"
-    @time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.eur.maf0.05"))
+    @time kgp_raw = SnpData(joinpath(@__DIR__, "../data/1kg/kgp.EUR.maf0.05.geno"))
     gwas, kgp_raw
 end
 
