@@ -190,7 +190,7 @@ for i in eachindex(num_samples)
 end
 
 begin
-    f = Figure(resolution = (530, 792))
+    f = Figure(size = (530, 792))
     @info "Plotting isoforms"
     g1 = f[1, 1] = GridLayout()
     g2 = f[1, 2] = GridLayout()
@@ -204,7 +204,7 @@ begin
     Legend(g1[1, 1], [PolyElement(color = colors[i], strokecolor = :transparent) for i in 1:4], string.(unique(num_samples)),
         tellwidth = false, tellheight = false, rowgap = 0, halign = :left, valign = :bottom,
         framevisible = false, patchsize = (3, 3), strokewidth = 0.1, padding = (10, 3, 3, 3))
-    Label(g1[1, 1, Top()], "XRN2 isoforms from long-read sequencing", textsize = 8)
+    Label(g1[1, 1, Top()], "XRN2 isoforms from long-read sequencing", fontsize = 8)
     m = length(unique(xrn2.transcript_id))
     ax2 = Axis(g1[1, 1])
     ylims!(ax2, 0.875 - (m - 1) * 0.125, 1.05)
@@ -230,16 +230,16 @@ begin
             GeneticsMakie.plotlocus!(axs[i], chr, range1, range2, filter(row -> !isnan(row.P), qtls[i]))
         end
         rowsize!(g2, i, 30)
-        Label(g2[i, 1, Top()], "$(qtls[i].ID[1])", textsize = 6, halign = :left, padding = (7.5, 7.5, -7.5, 0))
+        Label(g2[i, 1, Top()], "$(qtls[i].ID[1])", fontsize = 6, halign = :left, padding = (7.5, 7.5, -7.5, 0))
     end
     rs = GM.plotgenes!(axs[end], chr, range1, range2, gencode; height = 0.1)
     rowsize!(g2, d + 1, rs)
     GM.labelgenome(g2[d + 1, 1, Bottom()], chr, range1, range2)
     Colorbar(g2[1:d, 2], limits = (0, 1), ticks = 0:1:1, height = 20,
-        colormap = (:gray60, :red2), label = "LD", ticksize = 0, tickwidth = 0,
+        colormap = [:gray60, :red2], label = "LD", ticksize = 0, tickwidth = 0,
         tickalign = 0, ticklabelsize = 6, flip_vertical_label = true,
         labelsize = 6, width = 5, spinewidth = 0.5)
-    Label(g2[1:d, 0], text = "-log[p]", textsize = 6, rotation = pi / 2)
+    Label(g2[1:d, 0], text = rich("-log", subscript("10"), rich("P", font = :italic)), fontsize = 6, rotation = pi / 2)
     rowgap!(g2, 5)
     colgap!(g2, 5)
     colgap!(f.layout, 0)
@@ -251,7 +251,7 @@ begin
         lines!(axs[i], [range1, range2], fill(-log(10, 5e-8), 2), color = (:purple, 0.5), linewidth = 0.5)
     end
     resize_to_layout!(f)
-    save("figure5.pdf", f, pt_per_unit = 1)
+    save("figures/figure5.pdf", f, pt_per_unit = 1)
 end
 
 # liftover ASD gwas results

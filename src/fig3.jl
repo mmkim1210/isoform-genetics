@@ -121,6 +121,21 @@ range1 < 0 ? range1 = 0 : nothing
 range2 > GM.GRCh37_totlength[gene.chr] ? range2 = GM.GRCh37_totlength[gene.chr] : nothing
 titles = [GM.gwas[key].title for key in keys(GM.gwas)]
 
+function pvalues(n, p)
+    pvalues = Matrix{Float64}(undef, n^2, 3)
+    counter = 1
+    for i in 1:n
+        for j in 1:n
+            j == i ? pvalues[counter, 1] = 1 : pvalues[counter, 1] = p[j, i]
+            pvalues[counter, 2] = i - 0.5
+            pvalues[counter, 3] = -j + 0.5
+            counter += 1
+        end
+    end
+    ind = findall(x -> x < 0.05, pvalues[:, 1]) 
+    pvalues[ind, :]
+end
+
 begin
     f = Figure(size = (530, 792))
     g1 = f[1, 1] = GridLayout()
@@ -208,12 +223,22 @@ begin
             rg_mul_p[3][i, j] = rg_bi_p[3][i, j]
         end
     end
-    GM.plotrg!(axs2[2, 1], rg_mul[1], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
-    GM.plotrg!(axs2[2, 2], rg_mul[2], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
-    GM.plotrg!(axs2[2, 3], rg_mul[3], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[2, 1], rg_mul[1], diagonal = false, circle = false)
+    GM.plotrg!(axs2[2, 2], rg_mul[2], diagonal = false, circle = false)
+    GM.plotrg!(axs2[2, 3], rg_mul[3], diagonal = false, circle = false)
+    ps = [pvalues(n, rg_mul_p[i]) for i in 1:3]
+    [scatter!(axs2[2, i], ps[i][:, 2], ps[i][:, 3], marker = '✳', markersize = 7, color = :black) for i in 1:3]
+    [axs2[2, i].xticks = (0.5:(n - 0.5), "Iso" .* string.(1:n)) for i in 1:3]
+    [axs2[2, i].yticks = (-0.5:-1:-(n - 0.5), "Iso" .* string.(1:n)) for i in 1:3]
+    [axs2[2, i].xticklabelsize = 6 for i in 1:3]
+    [axs2[2, i].yticklabelsize = 6 for i in 1:3]
+    [axs2[2, i].xticklabelpad = 0 for i in 1:3]
+    [axs2[2, i].yticklabelpad = 1 for i in 1:3]
+    [axs2[2, i].xaxisposition = :top for i in 1:3]
+    [axs2[2, i].yaxisposition = :left for i in 1:3]
     [xlims!(axs2[2, i], 0, n) for i in 1:3]
     [ylims!(axs2[2, i], -n, 0) for i in 1:3]
-    [hidedecorations!(axs2[2, i]) for i in 1:3]
+    [hidedecorations!(axs2[2, i], ticklabels = false) for i in 1:3]
     [Label(g1[5, j, Right()], "Pairwise bivariate", fontsize = 6, rotation = -π / 2) for j in 1:3]
     [Label(g1[5, j, Bottom()], "Multivariate", fontsize = 6) for j in 1:3]
     for i in 1:3
@@ -248,9 +273,22 @@ begin
             rg_mul_p[3][i, j] = 1
         end
     end
-    GM.plotrg!(axs2[4, 1], rg_mul[1], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
-    GM.plotrg!(axs2[4, 2], rg_mul[2], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
-    GM.plotrg!(axs2[4, 3], rg_mul[3], diagonal = false, circle = false) # "Iso" .* string.(1:n), p = rg_mul_p[1]
+    GM.plotrg!(axs2[4, 1], rg_mul[1], diagonal = false, circle = false)
+    GM.plotrg!(axs2[4, 2], rg_mul[2], diagonal = false, circle = false)
+    GM.plotrg!(axs2[4, 3], rg_mul[3], diagonal = false, circle = false)
+    ps = [pvalues(n, rg_mul_p[i]) for i in 1:3]
+    [scatter!(axs2[4, i], ps[i][:, 2], ps[i][:, 3], marker = '✳', markersize = 7, color = :black) for i in 1:3]
+    [axs2[4, i].xticks = (0.5:(n - 0.5), "Iso" .* string.(1:n)) for i in 1:3]
+    [axs2[4, i].yticks = (-0.5:-1:-(n - 0.5), "Iso" .* string.(1:n)) for i in 1:3]
+    [axs2[4, i].xticklabelsize = 6 for i in 1:3]
+    [axs2[4, i].yticklabelsize = 6 for i in 1:3]
+    [axs2[4, i].xticklabelpad = 0 for i in 1:3]
+    [axs2[4, i].yticklabelpad = 1 for i in 1:3]
+    [axs2[4, i].xaxisposition = :top for i in 1:3]
+    [axs2[4, i].yaxisposition = :left for i in 1:3]
+    [xlims!(axs2[4, i], 0, n) for i in 1:3]
+    [ylims!(axs2[4, i], -n, 0) for i in 1:3]
+    [hidedecorations!(axs2[4, i], ticklabels = false) for i in 1:3]
     [Label(g1[7, j, Right()], "Phenotypic correlation", fontsize = 6, rotation = -π / 2) for j in 1:3]
     [Label(g1[7, j, Bottom()], "Multivariate", fontsize = 6) for j in 1:3]
     for i in 1:3
@@ -266,8 +304,8 @@ begin
     rowsize!(g1, 7, Aspect(3, 1))
     Label(g1[6, 1:4, TopLeft()], "d", fontsize = 12, font = "Arial bold", padding = (0, 5, 0, 0), halign = :right)
     Label(g1[6, 1:4, Top()], "Comparison with phenotypic correlation", fontsize = 8)
-    Label(g1[6, 1, Bottom()], "Cis SNP effects", fontsize = 6)
-    Label(g1[6, 2, Bottom()], "Trans SNP effects", fontsize = 6)
+    Label(g1[6, 1, Bottom()], rich(rich("Cis", font = :italic), "-SNP effects"), fontsize = 6)
+    Label(g1[6, 2, Bottom()], rich(rich("Trans", font = :italic), "-SNP effects"), fontsize = 6)
     Label(g1[6, 3, Bottom()], "Residual effects", fontsize = 6)
     rowsize!(g1, 6, 0.1)
     [hidespines!(axs2[3, j]) for j in 1:3]
